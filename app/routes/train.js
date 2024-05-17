@@ -1,5 +1,3 @@
-// app/routes/train.js
-
 const express = require('express');
 const { spawn } = require('child_process');
 const router = express.Router();
