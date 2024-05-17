@@ -1,5 +1,3 @@
-// app/routes/trade.js
-
 const express = require('express');
 const { createOrder } = require('../services/order_service');
 const { validateOrderData } = require('../utils/helpers');

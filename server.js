@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const tradeRoute = require('./app/routes/trade');
 const trainRoute = require('./app/routes/train');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
