@@ -1,9 +1,10 @@
 const express = require('express');
 const { spawn } = require('child_process');
+const { authenticateToken } = require('../middlewares/auth.js');
 const router = express.Router();
 
-router.post('/api/heroku/train', (req, res) => {
-  const process = spawn('python', ['app/scripts/train.py']);
+router.post('/api/heroku/train', authenticationtoken, (req, res) => {
+  const process = spawn('python', ['app/src/scripts/train.py']);
 
   process.stdout.on('data', (data) => {
     console.log(`stdout: ${data}`);

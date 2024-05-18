@@ -1,5 +1,3 @@
-// app/utils/helpers.js
-
 function validateOrderData(data) {
     const requiredFields = ['symbol', 'side', 'order_type', 'quantity'];
     requiredFields.forEach((field) => {
