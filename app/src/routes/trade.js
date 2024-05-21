@@ -1,11 +1,10 @@
 const express = require('express');
-const { authenticateToken } = require('../middlewares/auth.js');
 const { createOrder } = require('../services/order_service');
 const { validateOrderData } = require('../utils/helpers');
 
 const router = express.Router();
 
-router.post('/api/heroku/trade/binance', async (req, res) => {
+router.post('/binance', async (req, res) => {
   const data = req.body;
 
   try {
