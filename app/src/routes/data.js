@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const fs = require('fs');
 const authenticateToken = require('../middlewares/auth');
+const Symbol = require('../models/Symbol');
 const router = express.Router();
 
 router.post('/train', authenticateToken, (req, res) => {
@@ -35,23 +36,25 @@ router.post('/collect', authenticateToken, async (req, res) => {
       return;
     }
 
-    const outputPath = 'app/ressources/data/symbols/symbols.txt';
-
-    const stream = fs.createWriteStream(outputPath);
-
-    symbols.forEach(symbol => {
+    const symbolPromises = symbols.map(async (symbol) => {
       const symbolName = symbol.symbol;
       if (symbolName.endsWith('USDT')) {
         const trimmedSymbolName = symbolName.slice(0, -4);
-        stream.write(`${trimmedSymbolName},\n`);
+
+        try {
+          await Symbol.create({ name: trimmedSymbolName });
+        } catch (err) {
+          if (err.code !== 11000) {
+            throw err;
+          }
+        }
       }
     });
 
-    stream.end();
-    stream.on('finish', () => {
-      res.status(200).json({ message: `Symbols saved in ${outputPath}` });
-    });
-    
+    await Promise.all(symbolPromises);
+
+    res.status(200).json({ message: `Symbols saved in MongoDB` });
+
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: error.message });
