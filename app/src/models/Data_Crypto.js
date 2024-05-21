@@ -9,7 +9,7 @@ const symbolSchema = new mongoose.Schema({
 });
 
 const historicalDataSchema = new mongoose.Schema({
-  symbol: {
+  name: {
     type: String,
     required: true,
   },

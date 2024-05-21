@@ -30,7 +30,7 @@ const download_crypto_data = async () => {
             bulkOperations.push({
               insertOne: {
                 document: {
-                  symbol,
+                  name: symbol,
                   date,
                   open,
                   high,
