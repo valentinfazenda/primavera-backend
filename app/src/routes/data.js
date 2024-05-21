@@ -2,7 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const fs = require('fs');
 const authenticateToken = require('../middlewares/auth');
-const Symbol = require('../models/Symbol');
+const Symbol = require('../models/Data_Crypto');
+const { download_crypto_data } = require('../functions/download_crypto_data');
 const router = express.Router();
 
 router.post('/train', authenticateToken, (req, res) => {
@@ -55,6 +56,16 @@ router.post('/collect', authenticateToken, async (req, res) => {
 
     res.status(200).json({ message: `Symbols saved in MongoDB` });
 
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/download', authenticateToken, async (req, res) => {
+  try {
+    await download_crypto_data();
+    res.status(200).json({ message: 'Crypto data downloaded successfully' });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: error.message });
