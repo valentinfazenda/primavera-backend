@@ -1,8 +1,8 @@
 const express = require('express');
 const connectDB = require('./app/src/config/db');
 const bodyParser = require('body-parser');
-const tradeRoute = require('./app/src/routes/trade');
-const dataRoute = require('./app/src/routes/data');
+//const tradeRoute = require('./app/src/routes/trade');
+const flowsRoute = require('./app/src/routes/flows/flows');
 const authRoute = require('./app/src/routes/auth');
 const authenticateToken = require('./app/src/middlewares/auth');
 require('dotenv').config();
@@ -18,8 +18,8 @@ app.use(bodyParser.json());
 app.use('/api/auth', authRoute);
 
 // Protected routes
-app.use('/api/trade', authenticateToken, tradeRoute);
-app.use('/api/data', authenticateToken, dataRoute);
+app.use('/api/flows', authenticateToken, flowsRoute);
+//app.use('/api/data', authenticateToken, dataRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
