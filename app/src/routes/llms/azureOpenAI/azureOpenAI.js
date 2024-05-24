@@ -32,17 +32,14 @@ router.post('', authenticateToken, async (req, res) => {
         if (!azureOpenAIApiKey) {
             return res.status(404).json({ error: "API key details not found" });
         }
-        
-        console.log(azureOpenAIDeploymentName);
-        console.log(azureOpenAIApiKey);
 
-        const { messages } = req.body;
+        const { messages, modelName } = req.body;
 
         if (!messages) {
             return res.status(400).json({ error: "Property messages is missing" });
         }
 
-        const response = await axios.post(`https://${azureOpenAIDeploymentName}/openai/deployments/gpt-4-turbo-128k/chat/completions?api-version=2023-05-15`, {
+        const response = await axios.post(`https://${azureOpenAIDeploymentName}/openai/deployments/${modelName}/chat/completions?api-version=2024-02-01`, {
             messages: messages
         }, {
             headers: {

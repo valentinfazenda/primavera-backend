@@ -3,7 +3,7 @@ const router = express.Router();
 const authenticateToken = require('../../middlewares/auth');
 const Flow = require('../../models/Flow/Flow');
 
-router.get('', authenticateToken, async (req, res) => {
+router.get('/list', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     

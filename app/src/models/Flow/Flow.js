@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const flowSchema = new mongoose.Schema({
-  userid: {
+  id: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
