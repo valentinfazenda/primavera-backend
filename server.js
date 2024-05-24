@@ -2,7 +2,7 @@ const express = require('express');
 const connectDB = require('./app/src/config/db');
 const bodyParser = require('body-parser');
 
-const llmsRoute = require('./app/src/routes/llms/openAI/gpt-4/gpt-4');
+const llmsRoute = require('./app/src/routes/llms/openAI/openAI');
 const flowsRoute = require('./app/src/routes/flows/flows');
 const userRoute = require('./app/src/routes/user/user');
 const authRoute = require('./app/src/routes/auth');

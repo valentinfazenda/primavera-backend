@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../../../../middlewares/auth');
+const authenticateToken = require('../../../middlewares/auth');
 const axios = require('axios');
-const User = require('../../../../models/User/User');
+const User = require('../../../models/User/User');
 
-router.post('/gpt4', authenticateToken, async (req, res) => {
+router.post('/openai', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
         
@@ -14,18 +14,19 @@ router.post('/gpt4', authenticateToken, async (req, res) => {
         }
 
         const userApiKey = user.APIKey;
-        const { text } = req.body;
+        const { model, messages } = req.body;
 
-        if (!text) {
-            return res.status(400).json({ error: "Property text is missing" });
+        if (!model || !messages) {
+            return res.status(400).json({ error: "Property model or messages is missing" });
         }
 
         if (!userApiKey) {
             return res.status(400).json({ error: "API Key is missing for user" });
         }
 
-        const response = await axios.post('https://api.openai.com/v1/assistants/gpt-4o/completions', {
-            prompt: text,
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            messages: messages,
+            model: model,
             max_tokens: 150
         }, {
             headers: {
@@ -34,7 +35,7 @@ router.post('/gpt4', authenticateToken, async (req, res) => {
             }
         });
 
-        res.status(200).json({ response: response.data.choices[0].text });
+        res.status(200).json({ response: response.data.choices[0].message.content });
     } catch (error) {
         console.error(error);
         if (error.response) {
