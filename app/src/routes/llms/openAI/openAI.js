@@ -4,7 +4,7 @@ const authenticateToken = require('../../../middlewares/auth');
 const axios = require('axios');
 const User = require('../../../models/User/User');
 
-router.post('/openai', authenticateToken, async (req, res) => {
+router.post('', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
         

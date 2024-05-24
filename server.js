@@ -2,7 +2,7 @@ const express = require('express');
 const connectDB = require('./app/src/config/db');
 const bodyParser = require('body-parser');
 
-const llmsRoute = require('./app/src/routes/llms/openAI/openAI');
+const llmsRoute = require('./app/src/routes/llms');
 const flowsRoute = require('./app/src/routes/flows/flows');
 const userRoute = require('./app/src/routes/user/user');
 const authRoute = require('./app/src/routes/auth');
@@ -22,7 +22,7 @@ app.use('/api/auth', authRoute);
 
 // Protected routes
 app.use('/api/flows', authenticateToken, flowsRoute);
-app.use('/api/llms', authenticateToken, llmsRoute);
+app.use('/api/llms/', authenticateToken, llmsRoute);
 app.use('/api/user', authenticateToken, userRoute);
 
 app.listen(PORT, () => {
