@@ -3,12 +3,23 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, APIKey } = req.body;
+
+    const validProps = ['name', 'email', 'password', 'APIKey'];
+    const requestProps = Object.keys(req.body);
+    const invalidProps = requestProps.filter(prop => !validProps.includes(prop));
+
+    if (invalidProps.length > 0) {
+        return res.status(400).json({ msg: `Invalid properties found: ${invalidProps.join(', ')}` });
+    }
+
     try {
         let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ msg: 'User already exists' });
+        if (user) {
+            return res.status(400).json({ msg: 'User already exists' });
+        }
 
-        user = new User({ name, email, password });
+        user = new User({ name, email, password, APIKey });
 
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
