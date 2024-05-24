@@ -7,7 +7,11 @@ router.get('/list', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     
-    const flows = await Flow.find({ userid: userId });
+    const flows = await Flow.find({ userId: userId });
+    console.log(userId);
+    if (flows.length === 0) {
+      return res.status(200).json({ error: "No flows found for this user." });
+    }
 
     res.status(200).json(flows);
   } catch (error) {
@@ -26,7 +30,7 @@ router.post('/create', authenticateToken, async (req, res) => {
         }
   
         const newFlow = new Flow({
-        userid: userId,
+        userId: userId,
         data: data
         });
 
