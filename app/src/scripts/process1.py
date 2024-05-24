@@ -1,5 +1,5 @@
 import pandas as pd
-from pymongo import MongoClient, UpdateOne
+from pymongo import MongoClient
 
 ### Indicators ###
 
@@ -35,9 +35,11 @@ def calculate_variation(df):
     df['Variation'] = 100 * ((df['Close'] - df['Open']) / df['Open'])
 
 ### Dataframe Creation ###
+
 def create_dataframe(df, symbol, collection):
     """Create dataframe and update MongoDB with processed data for each symbol."""
     
+    # Make a copy of the DataFrame to avoid SettingWithCopyWarning
     df = df.copy()
     
     # Convert columns to numeric types
@@ -57,11 +59,8 @@ def create_dataframe(df, symbol, collection):
     
     df = df.dropna()
     
-    # Prepare bulk update operations
-    operations = []
-    print("operations creations...")
+    # Update MongoDB with new data
     for _, row in df.iterrows():
-        print ("date")
         query = {"name": symbol, "date": row["Date"]}
         update = {
             "$set": {
@@ -95,40 +94,34 @@ def create_dataframe(df, symbol, collection):
                 "variation": row.get("Variation")
             }
         }
-        operations.append(UpdateOne(query, update, upsert=True))
-    
-    if operations:
-        # Perform all updates in one command
-        result = collection.bulk_write(operations)
-        print(f"Updated {result.modified_count} documents.")
-
-    return df
+        collection.update_one(query, update, upsert=True)
 
 ### MAIN ###
 def main():
+    print("Python connecting to MongoDB Atlas")
     client = MongoClient('mongodb+srv://valentinfazenda:Rk2Hr4qVEteDNBhu@clusterusers.lf7lxyn.mongodb.net/primavera-ai?retryWrites=true&w=majority&appName=ClusterUsers')
     db = client['primavera-ai']
     historical_data_collection = db['historicaldatas']
+    print("Python connected to MongoDB Atlas")
     
-    cursor = historical_data_collection.find({})
-    data= list(cursor)
-    df = pd.DataFrame(data)
-    df = df.rename(columns={
-        'date': 'Date', 
-        'open': 'Open', 
-        'high': 'High', 
-        'low': 'Low', 
-        'close': 'Close'
-    })
-    df['Date'] = pd.to_datetime(df['Date'])
-    df.sort_values('Date', inplace=True)
-    
-    
-    symbols = historical_data_collection.distinct('name') 
+    symbols = historical_data_collection.distinct('name')
     for symbol in symbols:
         print(f"------------------ Process Symbol: {symbol} ------------------")
-
-        create_dataframe(df[df['name'] == symbol], symbol, historical_data_collection)
+        cursor = historical_data_collection.find({'name': symbol})
+        data = list(cursor)
+        
+        if data:
+            df = pd.DataFrame(data)
+            df = df.rename(columns={
+                'date': 'Date', 
+                'open': 'Open', 
+                'high': 'High', 
+                'low': 'Low', 
+                'close': 'Close'
+            })
+            df['Date'] = pd.to_datetime(df['Date'])
+            df.sort_values('Date', inplace=True)
+            create_dataframe(df, symbol, historical_data_collection)
 
 if __name__ == "__main__":
     main()
