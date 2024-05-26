@@ -7,14 +7,9 @@ async function executeFlow(flowId) {
     if (!flow) {
       throw new Error("Flow not found");
     }
+    const startingSteps = flow.steps.filter(step => step.startingStep);
 
-    const steps = flow.steps;
-    const results = [];
-
-    for (const step of steps) {
-      const result = await executeStep(step);
-      results.push(result);
-    }
+    const results = await Promise.all(startingSteps.map(step => executeStep(step)));
 
     return { success: true, results };
   } catch (error) {
