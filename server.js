@@ -7,6 +7,7 @@ const flowsRoute = require('./app/src/routes/flows');
 const modelsRoute = require('./app/src/routes/models');
 const userRoute = require('./app/src/routes/user');
 const authRoute = require('./app/src/routes/auth');
+const waitingListRoute = require('./app/src/routes/waitingList');
 
 const authenticateToken = require('./app/src/middlewares/auth');
 require('dotenv').config();
@@ -20,6 +21,7 @@ app.use(bodyParser.json());
 
 // Public routes
 app.use('/api/auth', authRoute);
+app.use('/api/waitingList', waitingListRoute);
 
 // Protected routes
 app.use('/api/flows/', authenticateToken, flowsRoute);
