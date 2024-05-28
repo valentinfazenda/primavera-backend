@@ -3,6 +3,8 @@ const axios = require('axios');
 const pdf = require('pdf-poppler');
 const Tesseract = require('tesseract.js');
 const path = require('path');
+const os = require('os');
+const { v4: uuidv4 } = require('uuid');
 
 async function downloadPDF(url, outputPath) {
   const response = await axios({
@@ -46,21 +48,27 @@ async function ocrImage(imagePath) {
 }
 
 async function DocumentOCR(url) {
-  const pdfPath = path.resolve(__dirname, 'downloaded.pdf');
-  const outputDir = path.resolve(__dirname, 'images');
+  const tempDir = path.join(os.tmpdir(), uuidv4());
+  const pdfPath = path.join(tempDir, 'downloaded.pdf');
+  const outputDir = path.join(tempDir, 'images');
 
-  await downloadPDF(url, pdfPath);
-  await convertPDFToImages(pdfPath, outputDir);
+  try {
+    await fs.promises.mkdir(tempDir, { recursive: true });
+    await downloadPDF(url, pdfPath);
+    await convertPDFToImages(pdfPath, outputDir);
 
-  const images = fs.readdirSync(outputDir).filter(file => file.endsWith('.jpg'));
-  let ocrText = '';
+    const images = fs.readdirSync(outputDir).filter(file => file.endsWith('.jpg'));
+    let ocrText = '';
 
-  for (const image of images) {
-    const text = await ocrImage(path.join(outputDir, image));
-    ocrText += text + '\n';
+    for (const image of images) {
+      const text = await ocrImage(path.join(outputDir, image));
+      ocrText += text + '\n';
+    }
+
+    return ocrText;
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
   }
-
-  return ocrText;
 }
 
 module.exports = {
