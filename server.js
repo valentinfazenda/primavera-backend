@@ -3,6 +3,7 @@ const connectDB = require('./app/src/config/db');
 const bodyParser = require('body-parser');
 
 const llmsRoute = require('./app/src/routes/llms');
+const devRoute = require('./app/src/routes/dev');
 const flowsRoute = require('./app/src/routes/flows');
 const modelsRoute = require('./app/src/routes/models');
 const userRoute = require('./app/src/routes/user');
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoute);
 app.use('/api/waitingList', waitingListRoute);
 
 // Protected routes
+app.use('/api/dev/', authenticateToken, devRoute);
 app.use('/api/flows/', authenticateToken, flowsRoute);
 app.use('/api/llms/', authenticateToken, llmsRoute);
 app.use('/api/user/', authenticateToken, userRoute);
