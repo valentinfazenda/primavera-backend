@@ -23,15 +23,15 @@ router.get('/list', authenticateToken, async (req, res) => {
 router.post('/create', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
-        const { data } = req.body;
+        const { name } = req.body;
 
-        if (!data) {
-        return res.status(400).json({ error: "Data is required" });
+        if (!name) {
+        return res.status(400).json({ error: "Name is required" });
         }
   
         const newFlow = new Flow({
         userId: userId,
-        data: data
+        name: name
         });
 
         const savedFlow = await newFlow.save();

@@ -2,12 +2,11 @@ const axios = require('axios');
 const User = require('../../../models/User/User');
 const Company = require('../../../models/Company/Company');
 
-async function sendMessageToOpenAI(userId, messages, modelName) {
+async function sendMessageToAzureOpenAI(userId, messages, modelName) {
     const user = await User.findById(userId);
     if (!user) {
         throw new Error("User not found");
     }
-
     const companyName = user.company;
     if (!companyName) {
         throw new Error("Company not found for user");
@@ -32,10 +31,9 @@ async function sendMessageToOpenAI(userId, messages, modelName) {
             'Content-Type': 'application/json'
         }
     });
-
     return response.data.choices[0].message.content;
 }
 
 module.exports = {
-    sendMessageToOpenAI
+    sendMessageToAzureOpenAI
 };

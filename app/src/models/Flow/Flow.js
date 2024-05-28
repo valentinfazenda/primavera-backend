@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const flowSchema = new mongoose.Schema({
-  data: {
+  name: {
     type: String,
     required: true,
   },

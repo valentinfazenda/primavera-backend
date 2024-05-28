@@ -1,27 +1,27 @@
 const axios = require('axios');
-const Step = require('../../../models/Step'); // Ajustez le chemin selon votre structure
+const Step = require('../../../models/Step/Step');
+const { executeStepLlm } = require('./stepLlmService/stepLlmService');
 
-async function executeStep(stepId, input = '') {
+async function executeStep(stepId, userId, input = '') {
   try {
     const step = await Step.findById(stepId);
     if (!step) {
       throw new Error("Step not found");
     }
 
-    const dataToSend = {
-      input: input,
-      stepData: step.data
-    };
-
-    const response = await axios.post('http://localhost:3000/api/llms/azureopenai', dataToSend);
-    
+    if (step.type == "llm") {
+      response = await executeStepLlm(stepId, userId, input);
+    }
+    else {
+      throw new Error("Step type not found");
+    }
     if (step.endingStep) {
-      return response.data;
+      return response;
     } else {
-      if (!step.nextStepId) {
+      if (!step.nextStep) {
         throw new Error("No next step defined");
       }
-      return await executeStep(step.nextStepId, response.data);
+      return await executeStep(step.nextStep, userId, response);
     }
   } catch (error) {
     console.error(error);
