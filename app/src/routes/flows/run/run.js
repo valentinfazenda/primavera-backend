@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../../../middlewares/auth');
-const { executeFlow } = require('../../../services/run/flow/flow');
+const { executeFlow } = require('../../../services/run/flowService/flowService');
 
 router.post('/run', authenticateToken, async (req, res) => {
   try {
