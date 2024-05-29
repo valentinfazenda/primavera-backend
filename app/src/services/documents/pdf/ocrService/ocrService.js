@@ -37,10 +37,8 @@ async function convertPDFToImages(pdfBuffer) {
 
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const numPages = pdfDoc.getPageCount();
-
     const tempDir = fs.mkdtempSync(path.join(__dirname, 'pdf-images-'));
 
-    const images = [];
     const options = {
       density: 100,
       format: "png",
@@ -49,19 +47,24 @@ async function convertPDFToImages(pdfBuffer) {
     };
     const converter = fromBuffer(pdfBuffer, options);
 
-    for (let i = 1; i <= numPages; i++) {
-      console.log(`Converting page ${i} to image...`);
-      const page = await converter(i, { responseType: "base64" });
+    // Create an array of promises for converting each page
+    const conversionPromises = Array.from({ length: numPages }, async (_, i) => {
+      const pageIndex = i + 1;
+      console.log(`Converting page ${pageIndex} to image...`);
+      const page = await converter(pageIndex, { responseType: "base64" });
       if (!page || !page.base64) {
-        console.error(`Failed to convert page ${i} to image: Base64 data is undefined`);
-        continue;
+        console.error(`Failed to convert page ${pageIndex} to image: Base64 data is undefined`);
+        return null;  // Return null if conversion fails, which must be handled later
       }
       const filename = uuidv4() + '.png';
       const filePath = path.join(tempDir, filename);
       fs.writeFileSync(filePath, page.base64, 'base64');
-      console.log(`Page ${i} converted successfully and saved as ${filename}`);
-      images.push(filePath);
-    }
+      console.log(`Page ${pageIndex} converted successfully and saved as ${filename}`);
+      return filePath;
+    });
+
+    // Wait for all page conversion promises to resolve
+    const images = (await Promise.all(conversionPromises)).filter(Boolean);  // Filter out any null results from failed conversions
 
     return { images, tempDir };
   } catch (error) {
@@ -91,11 +94,13 @@ async function DocumentOCR(url) {
     const pdfBuffer = await downloadPDF(url);
     const { images, tempDir } = await convertPDFToImages(pdfBuffer);
 
-    let ocrText = '';
-    for (const imagePath of images) {
-      const text = await ocrImage(imagePath);
-      ocrText += text + '\n';
-    }
+    const ocrPromises = images.map(imagePath => ocrImage(imagePath));
+
+    // Use Promise.all to process all OCR operations in parallel
+    const ocrResults = await Promise.all(ocrPromises);
+
+    // Combine all OCR text into a single string
+    const ocrText = ocrResults.join('\n');
 
     cleanupTempDir(tempDir); // Clean up the temporary files after processing
     return ocrText;
