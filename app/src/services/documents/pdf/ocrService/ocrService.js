@@ -112,7 +112,3 @@ module.exports = {
 // Additional logging to troubleshoot Heroku-specific issues
 console.log('Environment:', process.env.NODE_ENV);
 console.log('Temp Directory:', os.tmpdir());
-
-// Ensure Tesseract dependencies are installed on Heroku
-const { execSync } = require('child_process');
-execSync('apt-get update && apt-get install -y tesseract-ocr libtesseract-dev', { stdio: 'inherit' });
