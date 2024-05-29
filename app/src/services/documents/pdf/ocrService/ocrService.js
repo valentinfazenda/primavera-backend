@@ -20,7 +20,6 @@ async function downloadPDF(url) {
       throw new Error('Failed to download PDF: response data is undefined');
     }
 
-    console.log('PDF downloaded successfully.');
     return response.data;
   } catch (error) {
     console.error('Error downloading PDF:', error);
@@ -50,7 +49,6 @@ async function convertPDFToImages(pdfBuffer) {
     // Create an array of promises for converting each page
     const conversionPromises = Array.from({ length: numPages }, async (_, i) => {
       const pageIndex = i + 1;
-      console.log(`Converting page ${pageIndex} to image...`);
       const page = await converter(pageIndex, { responseType: "base64" });
       if (!page || !page.base64) {
         console.error(`Failed to convert page ${pageIndex} to image: Base64 data is undefined`);
@@ -59,7 +57,6 @@ async function convertPDFToImages(pdfBuffer) {
       const filename = uuidv4() + '.png';
       const filePath = path.join(tempDir, filename);
       fs.writeFileSync(filePath, page.base64, 'base64');
-      console.log(`Page ${pageIndex} converted successfully and saved as ${filename}`);
       return filePath;
     });
 
@@ -76,7 +73,6 @@ async function convertPDFToImages(pdfBuffer) {
 // Function to perform OCR on an image file
 async function ocrImage(imagePath) {
   try {
-    console.log('Performing OCR on image at ' + imagePath);
     return await Tesseract.recognize(imagePath, 'eng').then(({ data: { text } }) => text);
   } catch (error) {
     console.error('Error performing OCR on image:', error);
@@ -113,7 +109,6 @@ async function DocumentOCR(url) {
 // Function to clean up the temporary directory
 function cleanupTempDir(tempDir) {
   fs.rmSync(tempDir, { recursive: true, force: true });
-  console.log(`Temporary directory ${tempDir} has been removed.`);
 }
 
 module.exports = {
