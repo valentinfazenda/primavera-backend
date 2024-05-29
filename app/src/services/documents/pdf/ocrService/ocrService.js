@@ -36,6 +36,7 @@ async function convertPDFToImages(pdfBuffer) {
 
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const numPages = pdfDoc.getPageCount();
+    console.log(`Number of pages in PDF: ${numPages}`);
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pdf-images-'));
 
     const options = {
@@ -49,6 +50,10 @@ async function convertPDFToImages(pdfBuffer) {
     const conversionPromises = Array.from({ length: numPages }, async (_, i) => {
       const pageIndex = i + 1;
       const page = await converter(pageIndex, { responseType: "base64" });
+      if (!page) {
+        console.error(`Failed to convert page ${pageIndex} to image: Page data is undefined`);
+        return null;
+      }
       if (!page || !page.base64) {
         console.error(`Failed to convert page ${pageIndex} to image: Base64 data is undefined`);
         return null;
