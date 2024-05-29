@@ -36,7 +36,7 @@ async function convertPDFToImages(pdfBuffer) {
 
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const numPages = pdfDoc.getPageCount();
-    const tempDir = fs.mkdtempSync(path.join(__dirname, 'pdf-images-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pdf-images-'));
 
     const options = {
       density: 100,
@@ -46,13 +46,12 @@ async function convertPDFToImages(pdfBuffer) {
     };
     const converter = fromBuffer(pdfBuffer, options);
 
-    // Create an array of promises for converting each page
     const conversionPromises = Array.from({ length: numPages }, async (_, i) => {
       const pageIndex = i + 1;
       const page = await converter(pageIndex, { responseType: "base64" });
       if (!page || !page.base64) {
         console.error(`Failed to convert page ${pageIndex} to image: Base64 data is undefined`);
-        return null;  // Return null if conversion fails, which must be handled later
+        return null;
       }
       const filename = uuidv4() + '.png';
       const filePath = path.join(tempDir, filename);
@@ -60,9 +59,7 @@ async function convertPDFToImages(pdfBuffer) {
       return filePath;
     });
 
-    // Wait for all page conversion promises to resolve
-    const images = (await Promise.all(conversionPromises)).filter(Boolean);  // Filter out any null results from failed conversions
-
+    const images = (await Promise.all(conversionPromises)).filter(Boolean);
     return { images, tempDir };
   } catch (error) {
     console.error('Error converting PDF to images:', error);
@@ -91,14 +88,11 @@ async function DocumentOCR(url) {
     const { images, tempDir } = await convertPDFToImages(pdfBuffer);
 
     const ocrPromises = images.map(imagePath => ocrImage(imagePath));
-
-    // Use Promise.all to process all OCR operations in parallel
     const ocrResults = await Promise.all(ocrPromises);
 
-    // Combine all OCR text into a single string
     const ocrText = ocrResults.join('\n');
 
-    cleanupTempDir(tempDir); // Clean up the temporary files after processing
+    cleanupTempDir(tempDir);
     return ocrText;
   } catch (error) {
     console.error('Error in DocumentOCR:', error);
