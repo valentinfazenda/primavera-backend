@@ -36,7 +36,6 @@ async function convertPDFToImages(pdfBuffer) {
 
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const numPages = pdfDoc.getPageCount();
-    console.log(`Number of pages in PDF: ${numPages}`);
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pdf-images-'));
 
     const options = {

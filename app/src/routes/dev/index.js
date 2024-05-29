@@ -11,7 +11,6 @@ router.post('/pdfOCR', authenticateToken, async (req, res) => {
         }
 
         const pdfContent = await DocumentOCR(url);
-        console.log(pdfContent);
         res.status(200).json({ content: pdfContent });
     } catch (error) {
         console.error(error);
