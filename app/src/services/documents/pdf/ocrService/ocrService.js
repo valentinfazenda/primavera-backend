@@ -37,16 +37,16 @@ async function convertPDFToImages(pdfBuffer) {
 
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const numPages = pdfDoc.getPageCount();
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pdf-images-'));
-    const images = [];
 
+    const tempDir = fs.mkdtempSync(path.join(__dirname, 'pdf-images-'));
+
+    const images = [];
     const options = {
       density: 100,
       format: "png",
       width: 800,
       height: 1120
     };
-
     const converter = fromBuffer(pdfBuffer, options);
 
     for (let i = 1; i <= numPages; i++) {
