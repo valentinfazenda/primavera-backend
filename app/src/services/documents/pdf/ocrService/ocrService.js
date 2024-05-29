@@ -113,7 +113,3 @@ function cleanupTempDir(tempDir) {
 module.exports = {
   DocumentOCR
 };
-
-// Additional logging to troubleshoot Heroku-specific issues
-console.log('Environment:', process.env.NODE_ENV);
-console.log('Temp Directory:', os.tmpdir());
