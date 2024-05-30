@@ -1,6 +1,7 @@
 const axios = require('axios');
 const Step = require('../../../models/Step/Step');
 const { executeStepLlm } = require('./stepLlmService/stepLlmService');
+const { executeStepDocument } = require('./stepDocumentService/stepDocumentService');
 
 async function executeStep(stepId, userId, input = '') {
   try {
@@ -11,6 +12,9 @@ async function executeStep(stepId, userId, input = '') {
 
     if (step.type == "llm") {
       response = await executeStepLlm(stepId, userId, input);
+    }
+    else if (step.type == "document") {
+      response = await executeStepDocument(stepId, userId, input);
     }
     else {
       throw new Error("Step type not found");

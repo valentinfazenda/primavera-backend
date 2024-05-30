@@ -9,11 +9,18 @@ async function executeStepLlm(stepId, userId, input = '') {
     if (!step) {
       throw new Error("Step not found");
     }
-
-    const messages = [{
-        role: "user",
-        content: input + "/n/n/n " + step.data
-    }];
+    const messages = [];
+    if (input != '') {
+        messages.push({
+            role: "user",
+            content: input + "\n\n\nConsidering the above input the user wants to perform this task " + stepData + " Answer:"
+        });
+    } else {
+        messages.push({
+            role: "user",
+            content: input + "\n\n\n" + stepData
+        });
+    }
     if (step.modelLlm = "AzureOpenAI") {
         return await sendMessageToAzureOpenAI(userId, messages, step.modelName);
     }
