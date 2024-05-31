@@ -16,6 +16,9 @@ async function executeStep(stepId, userId, input = '') {
     else if (step.type == "document") {
       response = await executeStepDocument(stepId, userId, input);
     }
+    else if (step.type == "link") {
+      response = await executeStepLink(stepId, userId, input);
+    }
     else {
       throw new Error("Step type not found");
     }
