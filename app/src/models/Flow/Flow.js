@@ -10,12 +10,12 @@ const flowSchema = new mongoose.Schema({
     required: true,
   },
   status: {
-    type: bool,
+    type: Boolean,
     required: false,
     default: 'true',
   },
   shared: {
-    type: bool,
+    type: Boolean,
     required: false,
     default: 'false',
   },

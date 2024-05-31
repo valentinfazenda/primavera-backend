@@ -2,6 +2,7 @@ const axios = require('axios');
 const Step = require('../../../models/Step/Step');
 const { executeStepLlm } = require('./stepLlmService/stepLlmService');
 const { executeStepDocument } = require('./stepDocumentService/stepDocumentService');
+const { executeStepLink } = require('./stepLinkService/stepLinkService');
 
 async function executeStep(stepId, userId, input = '') {
   try {
