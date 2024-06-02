@@ -7,10 +7,8 @@ module.exports = {
                 socket.emit('authenticated', { status: 'success' });
 
                 if (msg.flowId) {
-                    console.log('Running flow: ' + msg.flowId + " for user " + socket.user.id);
                     const messageContent = await executeFlow(msg.flowId, socket.user.id);
-                    console.log('Flow finished: ' + JSON.stringify(messageContent));
-                    socket.emit('answer', JSON.stringify(messageContent));
+                    socket.emit('answer', messageContent)
                 } else {
                     console.error('missing flowId');
                 }
