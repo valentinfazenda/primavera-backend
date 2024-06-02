@@ -19,7 +19,7 @@ async function executeFlow(flowId, userId, socket) {
     let results;
 
     if (socket) { 
-      results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId, socket)));
+      results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId, '', socket)));
     } else {
       results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId)));
     }

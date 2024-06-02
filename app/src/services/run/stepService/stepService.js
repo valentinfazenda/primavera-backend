@@ -4,7 +4,7 @@ const { executeStepLlm } = require('./stepLlmService/stepLlmService');
 const { executeStepDocument } = require('./stepDocumentService/stepDocumentService');
 const { executeStepLink } = require('./stepLinkService/stepLinkService');
 
-async function executeStep(stepId, userId, input = '') {
+async function executeStep(stepId, userId, input = '', socket = null) {
   try {
     const step = await Step.findById(stepId);
     if (!step) {
@@ -23,14 +23,27 @@ async function executeStep(stepId, userId, input = '') {
     else {
       throw new Error("Step type not found");
     }
-    if (step.endingStep) {
-      return response;
-    } else {
-      if (!step.nextStep) {
-        throw new Error("No next step defined");
+    if (socket) {
+      socket.emit('answer', {stepId: stepId, response: response});
+      if (step.endingStep) {
+        return response;
+      } else {
+        if (!step.nextStep) {
+          throw new Error("No next step defined");
+        }
+        return await executeStep(step.nextStep, userId, response, socket);
       }
-      return await executeStep(step.nextStep, userId, response);
+    } else {
+      if (step.endingStep) {
+        return response;
+      } else {
+        if (!step.nextStep) {
+          throw new Error("No next step defined");
+        }
+        return await executeStep(step.nextStep, userId, response);
+      }
     }
+
   } catch (error) {
     console.error(error);
     throw new Error("Failed to execute step: " + error.message);
