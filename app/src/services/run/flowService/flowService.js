@@ -2,7 +2,7 @@ const Flow = require('../../../models/Flow/Flow');
 const Step = require('../../../models/Step/Step');
 const { executeStep } = require('../stepService/stepService');
 
-async function executeFlow(flowId, userId) {
+async function executeFlow(flowId, userId, socket) {
   try {
     const flow = await Flow.findById(flowId);
     if (!flow) {
@@ -16,7 +16,13 @@ async function executeFlow(flowId, userId) {
       throw new Error("No starting steps found for this flow");
     }
 
-    const results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId)));
+    let results;
+
+    if (socket) { 
+      results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId, socket)));
+    } else {
+      results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId)));
+    }
 
     return { success: true, results };
   } catch (error) {
@@ -26,5 +32,5 @@ async function executeFlow(flowId, userId) {
 }
 
 module.exports = {
-  executeFlow,
+  executeFlow
 };
