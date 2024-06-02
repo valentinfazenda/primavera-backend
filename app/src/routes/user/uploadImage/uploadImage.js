@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../../../middlewares/auth');
+const { authenticateToken } = require('../../../middlewares/auth');
 const uploadImage = require('../../../middlewares/upload');
 const User = require('../../../models/User/User');
 const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');

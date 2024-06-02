@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../../../middlewares/auth');
+const { authenticateToken } = require('../../../middlewares/auth');
 const { sendMessageToOpenAI } = require('../../../services/llms/openAIService/openAIService');
 
 router.post('', authenticateToken, async (req, res) => {

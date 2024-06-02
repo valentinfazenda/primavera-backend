@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../../middlewares/auth');
+const { authenticateToken } = require('../../middlewares/auth');
 const User = require('../../models/User/User');
 
 router.post('/update', authenticateToken, async (req, res) => {

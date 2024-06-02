@@ -1,7 +1,10 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require("socket.io");
+const { handleConnection } = require('./socket')
 const connectDB = require('./app/src/config/db');
+const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-
 const llmsRoute = require('./app/src/routes/llms');
 const devRoute = require('./app/src/routes/dev');
 const flowsRoute = require('./app/src/routes/flows');
@@ -9,15 +12,20 @@ const modelsRoute = require('./app/src/routes/models');
 const userRoute = require('./app/src/routes/user');
 const authRoute = require('./app/src/routes/auth');
 const waitingListRoute = require('./app/src/routes/waitingList');
-
-const authenticateToken = require('./app/src/middlewares/auth');
+const {authenticateToken, authenticateSocket} = require('./app/src/middlewares/auth');
 require('dotenv').config();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+io.use(authenticateSocket);
+io.on('connection', (socket) => {
+  handleConnection(socket);
+});
+
 const PORT = process.env.PORT || 5000;
 
 connectDB();
-
 app.use(bodyParser.json());
 
 // Public routes
@@ -31,6 +39,8 @@ app.use('/api/llms/', authenticateToken, llmsRoute);
 app.use('/api/user/', authenticateToken, userRoute);
 app.use('/api/models/', authenticateToken, modelsRoute);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+module.exports = { io };

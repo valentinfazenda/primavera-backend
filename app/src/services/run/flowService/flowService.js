@@ -17,6 +17,7 @@ async function executeFlow(flowId, userId) {
     }
 
     const results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId)));
+    console.log("results from the function: " + results)
 
     return { success: true, results };
   } catch (error) {

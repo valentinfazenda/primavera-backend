@@ -82,7 +82,7 @@ async function ocrImage(imagePath) {
 }
 
 // Function to process OCR on PDF document from URL and clean up afterward
-async function DocumentOCR(url) {
+async function DocumentOCR(url, progressCallback) {
   try {
     if (!url) {
       throw new Error('URL is undefined');
@@ -97,6 +97,7 @@ async function DocumentOCR(url) {
     const ocrText = ocrResults.join('\n');
 
     cleanupTempDir(tempDir);
+    progressCallback(100);
     return ocrText;
   } catch (error) {
     console.error('Error in DocumentOCR:', error);

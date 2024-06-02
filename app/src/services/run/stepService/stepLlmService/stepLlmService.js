@@ -13,12 +13,12 @@ async function executeStepLlm(stepId, userId, input = '') {
     if (input != '') {
         messages.push({
             role: "user",
-            content: input + "\n\n\nConsidering the above input the user wants to perform this task " + stepData + " Answer:"
+            content: input + "\n\n\nConsidering the above input the user wants to perform this task " + step.data + " Answer:"
         });
     } else {
         messages.push({
             role: "user",
-            content: input + "\n\n\n" + stepData
+            content: input + "\n\n\n" + step.data
         });
     }
     if (step.modelLlm = "AzureOpenAI") {
