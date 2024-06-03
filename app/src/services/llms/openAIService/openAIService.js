@@ -1,5 +1,6 @@
 const axios = require('axios');
 const User = require('../../../models/User/User');
+const {OpenAI} = require('openai');
 
 async function sendMessageToOpenAI(userId, messages, model) {
     const user = await User.findById(userId);
@@ -11,19 +12,26 @@ async function sendMessageToOpenAI(userId, messages, model) {
     if (!userApiKey) {
         throw new Error("API Key is missing for user");
     }
-
-    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        messages: messages,
-        model: model,
-        max_tokens: 150
-    }, {
-        headers: {
-            'Authorization': `Bearer ${userApiKey}`,
-            'Content-Type': 'application/json'
-        }
+    const openai = new OpenAI({
+        apiKey: userApiKey
     });
 
-    return response.data.choices[0].message.content;
+    const events = await openai.chat.completions.create({
+        messages: messages,
+        model: model,
+        stream: true
+      });
+
+      let response = '';
+      for await (const event of events) {
+          for (const choice of event.choices) {
+            const delta = choice.delta?.content;
+            if (delta !== undefined) {
+              response += delta;
+            }
+          }
+        }
+      return response;
 }
 
 module.exports = {
