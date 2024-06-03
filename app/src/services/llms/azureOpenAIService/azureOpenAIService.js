@@ -1,6 +1,7 @@
 const axios = require('axios');
 const User = require('../../../models/User/User');
 const Company = require('../../../models/Company/Company');
+const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 
 async function sendMessageToAzureOpenAI(userId, messages, modelName) {
     const user = await User.findById(userId);
@@ -16,22 +17,29 @@ async function sendMessageToAzureOpenAI(userId, messages, modelName) {
     if (!company) {
         throw new Error("Company details not found");
     }
-
     const azureOpenAIDeploymentName = company.azureOpenAIDeploymentName;
     const azureOpenAIApiKey = company.azureOpenAIApiKey;
     if (!azureOpenAIDeploymentName || !azureOpenAIApiKey) {
         throw new Error("Deployment name or API key details not found");
     }
-
-    const response = await axios.post(`https://${azureOpenAIDeploymentName}/openai/deployments/${modelName}/chat/completions?api-version=2024-02-01`, {
-        messages: messages
-    }, {
-        headers: {
-            'api-key': azureOpenAIApiKey,
-            'Content-Type': 'application/json'
+    const url = `https://${azureOpenAIDeploymentName}/`;
+    console.log("URL: ", url);
+    const client = new OpenAIClient(
+        url, 
+        new AzureKeyCredential(azureOpenAIApiKey)
+      );
+      
+    const events = await client.streamChatCompletions(modelName, messages);
+    let response = '';
+    for await (const event of events) {
+        for (const choice of event.choices) {
+          const delta = choice.delta?.content;
+          if (delta !== undefined) {
+            response += delta;
+          }
         }
-    });
-    return response.data.choices[0].message.content;
+      }
+    return response;
 }
 
 module.exports = {
