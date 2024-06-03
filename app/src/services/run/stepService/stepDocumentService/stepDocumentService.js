@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Step = require('../../../../models/Step/Step');
-const { DocumentOCR } = require('../../../documents/pdf/ocrService/ocrService');
+const { convertPDFBufferToText } = require('../../../documents/pdf/ocrService/ocrService'); //to modify to take buffer input and not url
 const { processExcelBuffer } = require('../../../documents/xlsx/xlsxService');
 
 async function executeStepDocument(stepId, userId, input = '') {
@@ -11,7 +11,7 @@ async function executeStepDocument(stepId, userId, input = '') {
     }
 
     if (step.docType = "pdf") {
-        documentStr = DocumentOCR(step.docSource);
+        documentStr = convertPDFBufferToText(step.docSource);
     }
     else if (step.docType = "xlsx") {
         documentStr = processExcelBuffer(step.docSource);

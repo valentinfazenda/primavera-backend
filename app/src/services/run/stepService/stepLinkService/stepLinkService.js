@@ -1,7 +1,7 @@
 const axios = require('axios');
 const Step = require('../../../../models/Step/Step');
 const { extractTextFromURL } = require('../../../links/linkService');
-const { DocumentOCR } = require('../../../documents/pdf/ocrService/ocrService');
+const { DocumentOCR } = require('../../../documents/pdf/ocrService/ocrService_old');
 
 async function executeStepLink(stepId, userId, input = '') {
   try {
