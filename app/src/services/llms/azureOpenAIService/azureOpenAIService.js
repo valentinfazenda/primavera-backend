@@ -4,44 +4,41 @@ const Company = require('../../../models/Company/Company');
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 
 async function sendMessageToAzureOpenAI(userId, messages, modelName, socket) {
+    // Fetch the user
     const user = await User.findById(userId);
     if (!user) {
         throw new Error("User not found");
     }
-    const companyName = user.company;
-    if (!companyName) {
+    if (!user.company) {
         throw new Error("Company not found for user");
     }
 
-    const company = await Company.findOne({ name: companyName });
+    // Fetch the company
+    const company = await Company.findOne({ name: user.company });
     if (!company) {
         throw new Error("Company details not found");
     }
-    const azureOpenAIDeploymentName = company.azureOpenAIDeploymentName;
-    const azureOpenAIApiKey = company.azureOpenAIApiKey;
+
+    const { azureOpenAIDeploymentName, azureOpenAIApiKey } = company;
     if (!azureOpenAIDeploymentName || !azureOpenAIApiKey) {
         throw new Error("Deployment name or API key details not found");
     }
+
     const url = `https://${azureOpenAIDeploymentName}/`;
-    console.log("URL: ", url);
-    const client = new OpenAIClient(
-        url, 
-        new AzureKeyCredential(azureOpenAIApiKey)
-      );
-      
+    const client = new OpenAIClient(url, new AzureKeyCredential(azureOpenAIApiKey));
+
     const events = await client.streamChatCompletions(modelName, messages);
     let response = '';
+
+    // Streamlined event processing
     for await (const event of events) {
-        for (const choice of event.choices) {
-          const delta = choice.delta?.content;
-          if (delta !== undefined) {
-            response += delta;
-            if (socket) {
-              socket.emit('message', delta);
-            }
-          }
+        const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
+        response += content;
+        if (socket && content) {
+            socket.emit('message', content);
         }
-      }
+    }
+
     return response;
 }
 
