@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../../middlewares/auth');
 const Model = require('../../models/Model/Model');
+const Flow = require('../../models/Flow/Flow');
+const Step = require('../../models/Step/Step');
 
 // List available models for a user
 router.get('/list', authenticateToken, async (req, res) => {
@@ -74,6 +76,53 @@ router.delete('/delete', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Find the most recurrent model name in steps for a user's flows
+router.get('/most-recurrent-model', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+      // Find all flows for the given userId
+      const flows = await Flow.find({ userId: userId });
+      if (!flows.length) {
+          return res.status(404).json({ message: "No flows found for this user." });
+      }
+
+      // Extract flowIds
+      const flowIds = flows.map(flow => flow._id);
+
+      // Find all steps that belong to these flows
+      const steps = await Step.find({ flowId: { $in: flowIds } });
+      
+      // Create a map to count occurrences of each modelName
+      const modelCount = {};
+      steps.forEach(step => {
+          if (step.modelName) {
+              modelCount[step.modelName] = (modelCount[step.modelName] || 0) + 1;
+          }
+      });
+
+      // Find the modelName with the maximum count
+      let mostRecurrentModel = null;
+      let maxCount = 0;
+      for (let model in modelCount) {
+          if (modelCount[model] > maxCount) {
+              mostRecurrentModel = model;
+              maxCount = modelCount[model];
+          }
+      }
+
+      if (!mostRecurrentModel) {
+          return res.status(404).json({ message: "No model names found in steps." });
+      }
+
+      // Return the most recurrent modelName
+      res.status(200).json({ mostRecurrentModel });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
   }
 });
 
