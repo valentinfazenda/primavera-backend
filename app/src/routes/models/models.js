@@ -17,7 +17,7 @@ router.get('/list', authenticateToken, async (req, res) => {
 
 // Create a new model
 router.post('/create', authenticateToken, async (req, res) => {
-  const { name, apiKey, active = true } = req.body; // Set default value for active here for simplicity
+  const { name, apiKey, active = true } = req.body;
   if (!name || !apiKey) {
     return res.status(400).json({ error: "Name and API Key are required" });
   }
