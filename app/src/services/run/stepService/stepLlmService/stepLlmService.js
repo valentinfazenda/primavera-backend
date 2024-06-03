@@ -10,7 +10,6 @@ async function executeStepLlm(stepId, userId, input = '', socket = null) {
         role: "user",
         content: `${input}\n\n\n${input ? `Considering the above input the user wants to perform this task ${step.data} Answer:` : step.data}`
     }];
-
     switch (step.modelLlm) {
         case "AzureOpenAI":
             return await sendMessageToAzureOpenAI(userId, messages, step.modelName, socket);

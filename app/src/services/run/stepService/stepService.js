@@ -12,13 +12,13 @@ async function executeStep(stepId, userId, input = '', socket = null) {
     }
 
     if (step.type == "llm") {
-      response = await executeStepLlm(stepId, userId, input);
+      response = await executeStepLlm(stepId, userId, input, socket);
     }
     else if (step.type == "document") {
-      response = await executeStepDocument(stepId, userId, input);
+      response = await executeStepDocument(stepId, userId, input, socket);
     }
     else if (step.type == "link") {
-      response = await executeStepLink(stepId, userId, input);
+      response = await executeStepLink(stepId, userId, input, socket);
     }
     else {
       throw new Error("Step type not found");

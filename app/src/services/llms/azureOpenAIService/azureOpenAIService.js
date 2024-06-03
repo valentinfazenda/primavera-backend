@@ -30,7 +30,6 @@ async function sendMessageToAzureOpenAI(userId, messages, modelName, socket) {
     const events = await client.streamChatCompletions(modelName, messages);
     let response = '';
 
-    // Streamlined event processing
     for await (const event of events) {
         const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
         response += content;
