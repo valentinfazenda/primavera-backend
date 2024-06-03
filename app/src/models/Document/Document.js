@@ -7,7 +7,7 @@ const DocumentSchema = new mongoose.Schema({
   },
   fulltext: {
     type: String,
-    required: true
+    required: false
   },
   extension: {
     type: String,

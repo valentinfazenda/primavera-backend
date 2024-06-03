@@ -44,7 +44,7 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
         return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const { name } = req.body;
+    const name = req.file.originalname;
     const buffer = req.file.buffer;
 
     // Dynamically import the fileType module
@@ -64,7 +64,29 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
     } else {
         return res.status(400).json({ error: "Failed to detect file type" });
     }
+    if (!name || !extension) {
+        return res.status(400).json({ error: "Name and file type are required" });
+    }
 
+    const newDocument = new Document({
+        name,
+        fulltext: "", // Will be updated after processing
+        extension
+    });
+
+    let savedDocument;
+    try {
+        savedDocument = await newDocument.save();
+        res.status(201).json({ message: "Document processing started", id: savedDocument._id, name: savedDocument.name });
+    } catch (error) {
+        console.error('Error saving initial document:', error);
+        return res.status(500).json({ error: "Error saving document" });
+    }
+
+    processDocument(savedDocument._id, buffer, extension);
+});
+
+async function processDocument(documentId, buffer, extension) {
     let fulltext = '';
     try {
         switch (extension) {
@@ -75,29 +97,14 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
                 fulltext = 'Parsed xlsx content';
                 break;
             default:
-                throw new Error("Format not supported");
+                console.log("Unsupported file format");
+                return;
         }
+        await Document.findByIdAndUpdate(documentId, { fulltext });
+        console.log("Document updated successfully with full text.");
     } catch (error) {
-        console.error('Error processing document:', error);
-        return res.status(500).json({ error: error.message });
+        console.error('Error processing document in background:', error);
     }
-
-    if (!name || !fulltext || !extension) {
-        return res.status(400).json({ error: "All fields (name, fulltext, extension) are required" });
-    }
-
-    try {
-        const newDocument = new Document({
-            name,
-            fulltext,
-            extension
-        });
-        const savedDocument = await newDocument.save();
-        res.status(201).json(savedDocument);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
-    }
-});
+}
 
 module.exports = router;
