@@ -3,7 +3,7 @@ const User = require('../../../models/User/User');
 const Company = require('../../../models/Company/Company');
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 
-async function sendMessageToAzureOpenAI(userId, messages, modelName) {
+async function sendMessageToAzureOpenAI(userId, messages, modelName, socket) {
     const user = await User.findById(userId);
     if (!user) {
         throw new Error("User not found");
@@ -36,6 +36,9 @@ async function sendMessageToAzureOpenAI(userId, messages, modelName) {
           const delta = choice.delta?.content;
           if (delta !== undefined) {
             response += delta;
+            if (socket) {
+              socket.emit('message', delta);
+            }
           }
         }
       }

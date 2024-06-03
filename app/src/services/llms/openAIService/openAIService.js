@@ -2,7 +2,7 @@ const axios = require('axios');
 const User = require('../../../models/User/User');
 const {OpenAI} = require('openai');
 
-async function sendMessageToOpenAI(userId, messages, model) {
+async function sendMessageToOpenAI(userId, messages, model, socket) {
     const user = await User.findById(userId);
     if (!user) {
         throw new Error("User not found");
@@ -28,6 +28,9 @@ async function sendMessageToOpenAI(userId, messages, model) {
             const delta = choice.delta?.content;
             if (delta !== undefined) {
               response += delta;
+              if (socket) {
+                socket.emit('message', delta);
+              }
             }
           }
         }
