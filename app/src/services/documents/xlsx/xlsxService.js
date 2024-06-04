@@ -20,7 +20,7 @@ async function excelBufferToString(buffer) {
   }
 }
 
-async function processExcelBuffer(buffer) {
+async function convertExcelBufferToText(buffer) {
   try {
     return await excelBufferToString(buffer);
   } catch (error) {
@@ -30,5 +30,5 @@ async function processExcelBuffer(buffer) {
 }
 
 module.exports = {
-  processExcelBuffer
+  convertExcelBufferToText
 };

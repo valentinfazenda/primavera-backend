@@ -52,14 +52,14 @@ router.post('/list', authenticateToken, async (req, res) => {
 
 // Create a new step
 router.post('/create', authenticateToken, async (req, res) => {
-    const { name, flowId, type, modelLlm, modelName, previousStep, nextStep, startingStep, endingStep, data } = req.body;
+    const { name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data } = req.body;
 
     if (!name || !flowId || !type) {
         return sendErrorResponse(res, 400, "All required fields must be provided");
     }
 
     try {
-        const newStep = new Step({ name, flowId, type, modelLlm, modelName, previousStep, nextStep, startingStep, endingStep, data });
+        const newStep = new Step({ name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data });
         const savedStep = await newStep.save();
         res.status(201).json(savedStep);
     } catch (error) {

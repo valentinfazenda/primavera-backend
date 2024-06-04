@@ -1,5 +1,6 @@
 const Document = require('../../models/Document/Document');
 const { convertPDFBufferToText } = require('./pdf/ocrService/ocrService');
+const { convertExcelBufferToText } = require('./xlsx/xlsxService');
 
 async function createDocument(fileBuffer, originalName) {
 
@@ -37,7 +38,7 @@ async function processDocument(documentId, buffer, extension) {
             fulltext = await convertPDFBufferToText(buffer);
             break;
         case "xlsx":
-            fulltext = 'Parsed xlsx content';
+            fulltext = await convertExcelBufferToText(buffer);
             break;
         default:
             console.log("Unsupported file format");
