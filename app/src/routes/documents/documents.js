@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const { authenticateToken } = require('../../middlewares/auth');
 const { convertPDFBufferToText } = require('../../services/documents/pdf/ocrService/ocrService');
+const { createDocument, processDocument } = require('../../services/documents/documentsService.js');
 const Document = require('../../models/Document/Document');
 
 const storage = multer.memoryStorage();
@@ -44,67 +45,15 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
         return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const name = req.file.originalname;
-    const buffer = req.file.buffer;
-
-    // Dynamically import the fileType module
-    let fileType;
     try {
-        fileType = await import('file-type');
-    } catch (error) {
-        console.error('Failed to load file-type module:', error);
-        return res.status(500).json({ error: "Server error" });
-    }
-
-    // Detect file type and extension using the dynamically imported fileType
-    let extension;
-    const type = await fileType.fileTypeFromBuffer(buffer);
-    if (type) {
-        extension = type.ext;
-    } else {
-        return res.status(400).json({ error: "Failed to detect file type" });
-    }
-    if (!name || !extension) {
-        return res.status(400).json({ error: "Name and file type are required" });
-    }
-
-    const newDocument = new Document({
-        name,
-        fulltext: "", // Will be updated after processing
-        extension
-    });
-
-    let savedDocument;
-    try {
-        savedDocument = await newDocument.save();
+        const savedDocument = await createDocument(req.file.buffer, req.file.originalname);
         res.status(201).json({ message: "Document processing started", id: savedDocument._id, name: savedDocument.name });
+        processDocument(savedDocument._id, req.file.buffer, savedDocument.extension)
+            .catch(err => console.error('Error processing document in background:', err));
     } catch (error) {
         console.error('Error saving initial document:', error);
-        return res.status(500).json({ error: "Error saving document" });
+        res.status(500).json({ error: error.message });
     }
-
-    processDocument(savedDocument._id, buffer, extension);
 });
-
-async function processDocument(documentId, buffer, extension) {
-    let fulltext = '';
-    try {
-        switch (extension) {
-            case "pdf":
-                fulltext = await convertPDFBufferToText(buffer);
-                break;
-            case "xlsx":
-                fulltext = 'Parsed xlsx content';
-                break;
-            default:
-                console.log("Unsupported file format");
-                return;
-        }
-        await Document.findByIdAndUpdate(documentId, { fulltext });
-        console.log("Document updated successfully with full text.");
-    } catch (error) {
-        console.error('Error processing document in background:', error);
-    }
-}
 
 module.exports = router;
