@@ -10,8 +10,8 @@ const stepSchema = new mongoose.Schema({
   docType: { type: String, required: false },
   modelLlm: { type: String, required: false },
   modelName: { type: String, required: false },
-  previousStep: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: false },
-  nextStep: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: false },
+  previousStep: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: false }],
+  nextStep: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: false }],
   startingStep: { type: Boolean, required: true, default: false },
   endingStep: { type: Boolean, required: true, default: false },
   data: { type: String, required: false }
