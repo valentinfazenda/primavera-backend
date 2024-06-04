@@ -12,7 +12,7 @@ async function executeStep(stepId, userId, input = '', socket = null) {
     }
 
     if (step.type == "llm") {
-      response = await executeStepLlm(stepId, userId, input, socket);
+      response = await executeStepLlm(stepId, userId, input, socket, stepId);
     }
     else if (step.type == "document") {
       response = await executeStepDocument(stepId, userId, input, socket);
@@ -23,25 +23,19 @@ async function executeStep(stepId, userId, input = '', socket = null) {
     else {
       throw new Error("Step type not found");
     }
-    if (socket) {
-      socket.emit('answer', {stepId: stepId, response: response});
-      if (step.endingStep) {
-        return response;
-      } else {
-        if (!step.nextStep) {
-          throw new Error("No next step defined");
-        }
-        return await executeStep(step.nextStep, userId, response, socket);
-      }
+
+    if (step.endingStep) {
+      return response;
     } else {
-      if (step.endingStep) {
-        return response;
-      } else {
-        if (!step.nextStep) {
-          throw new Error("No next step defined");
-        }
-        return await executeStep(step.nextStep, userId, response);
+      if (!step.nextSteps || step.nextSteps.length === 0) {
+        throw new Error("No next steps defined");
       }
+
+      // Execute multiple next steps in parallel
+      const nextStepPromises = step.nextSteps.map(nextStepId =>
+        executeStep(nextStepId, userId, response, socket)
+      );
+      return await Promise.all(nextStepPromises);
     }
 
   } catch (error) {

@@ -12,9 +12,9 @@ async function executeStepLlm(stepId, userId, input = '', socket = null) {
     }];
     switch (step.modelLlm) {
         case "AzureOpenAI":
-            return await sendMessageToAzureOpenAI(userId, messages, step.modelName, socket);
+            return await sendMessageToAzureOpenAI(userId, messages, step.modelName, stepId, socket);
         case "OpenAI":
-            return await sendMessageToOpenAI(userId, messages, step.modelName, socket);
+            return await sendMessageToOpenAI(userId, messages, step.modelName, stepId, socket);
         default:
             throw new Error("Model not found");
     }

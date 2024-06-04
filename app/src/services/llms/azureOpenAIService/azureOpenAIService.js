@@ -3,7 +3,7 @@ const User = require('../../../models/User/User');
 const Company = require('../../../models/Company/Company');
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 
-async function sendMessageToAzureOpenAI(userId, messages, modelName, socket) {
+async function sendMessageToAzureOpenAI(userId, messages, modelName,  stepId, socket) {
     // Fetch the user
     const user = await User.findById(userId);
     if (!user) {
@@ -34,10 +34,13 @@ async function sendMessageToAzureOpenAI(userId, messages, modelName, socket) {
         const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
         response += content;
         if (socket && content) {
-            socket.emit('message', content);
+            socket.emit('answer', { stepId, response, status: 'loading'});
         }
     }
-
+    if (socket && response) {
+        socket.emit('answer', { stepId, response, status: 'done'});
+    }
+    
     return response;
 }
 
