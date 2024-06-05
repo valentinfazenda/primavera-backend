@@ -8,7 +8,16 @@ async function excelBufferToString(buffer) {
     let content = '';
     workbook.eachSheet((sheet) => {
       sheet.eachRow((row) => {
-        const rowValues = row.values.filter((val) => val !== null && val !== undefined);
+        let rowValues = row.values.map((cell) => {
+          if (cell && typeof cell === 'object' && cell.formula) {
+            return cell.result || `Formula: ${cell.formula}`;
+          } else if (cell && typeof cell === 'object' && cell.richText) {
+            return cell.richText.map((part) => part.text).join('');
+          } else {
+            return cell;
+          }
+        }).filter(val => val !== null && val !== undefined);
+
         content += rowValues.join(' ') + '\n';
       });
     });
