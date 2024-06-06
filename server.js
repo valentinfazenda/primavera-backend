@@ -16,9 +16,17 @@ import { authenticateToken, authenticateSocket } from './app/src/middlewares/aut
 import 'dotenv/config';
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Authorization"],
+    credentials: true
+  }
+});
 io.use(authenticateSocket);
 io.on('connection', (socket) => {
+  console.log('a user connected');
   handleConnection(socket);
 });
 
