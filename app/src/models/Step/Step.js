@@ -1,6 +1,5 @@
-const mongoose = require('mongoose');
-const Flow = require('../Flow/Flow');
-const { urlencoded } = require('body-parser');
+import mongoose from 'mongoose';
+import Flow from '../Flow/Flow.js';
 
 const stepSchema = new mongoose.Schema({
   name: { type: String, required: true},
@@ -16,4 +15,6 @@ const stepSchema = new mongoose.Schema({
   data: { type: String, required: false }
 });
 
-module.exports = mongoose.model('Step', stepSchema);
+const Step = mongoose.model('Step', stepSchema);
+
+export default Step;

@@ -1,11 +1,11 @@
-const axios = require('axios');
-const { PDFDocument } = require('pdf-lib');
-const { fromBuffer } = require('pdf2pic');
-const Tesseract = require('tesseract.js');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+import axios from 'axios';
+import { PDFDocument } from 'pdf-lib';
+import { fromBuffer } from 'pdf2pic';
+import Tesseract from 'tesseract.js';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 // Function to download PDF from a URL
 async function downloadPDF(url) {
@@ -110,6 +110,6 @@ function cleanupTempDir(tempDir) {
   fs.rmSync(tempDir, { recursive: true, force: true });
 }
 
-module.exports = {
+export {
   DocumentOCR
 };

@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { authenticateToken } = require('../../middlewares/auth');
-const Flow = require('../../models/Flow/Flow');
-const Step = require('../../models/Step/Step');
+import { authenticateToken } from '../../middlewares/auth.js';
+import Flow from '../../models/Flow/Flow.js';
+import Step from '../../models/Step/Step.js';
 
 router.get('/list', authenticateToken, async (req, res) => {
   try {
@@ -112,4 +112,4 @@ router.get('/total-runned-times', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

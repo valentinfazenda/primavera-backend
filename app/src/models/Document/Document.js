@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const DocumentSchema = new mongoose.Schema({
   name: {
@@ -21,4 +21,4 @@ DocumentSchema.index({ fulltext: 'text' });
 
 const Document = mongoose.model('Document', DocumentSchema);
 
-module.exports = Document;
+export default Document;

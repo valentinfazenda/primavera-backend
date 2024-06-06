@@ -1,12 +1,12 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const stepsRouter = require('./steps/steps');
-const runRouter = require('./run/run');
-const flowsRouter = require('./flows');
+import stepsRouter from './steps/steps.js';
+import runRouter from './run/run.js';
+import flowsRouter from './flows.js';
 
 router.use('/steps', stepsRouter);
 router.use('/run', runRouter);
 router.use('', flowsRouter);
 
-module.exports = router;
+export default router;

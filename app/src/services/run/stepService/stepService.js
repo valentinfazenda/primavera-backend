@@ -1,8 +1,8 @@
-const axios = require('axios');
-const Step = require('../../../models/Step/Step');
-const { executeStepLlm } = require('./stepLlmService/stepLlmService');
-const { executeStepDocument } = require('./stepDocumentService/stepDocumentService');
-const { executeStepLink } = require('./stepLinkService/stepLinkService');
+import axios from 'axios';
+import Step from '../../../models/Step/Step.js';
+import { executeStepLlm } from './stepLlmService/stepLlmService.js';
+import { executeStepDocument } from './stepDocumentService/stepDocumentService.js';
+import { executeStepLink } from './stepLinkService/stepLinkService.js';
 
 let stepDependencies = {};
 
@@ -57,6 +57,6 @@ async function executeStep(stepId, userId, input = '', socket = null) {
   }
 }
 
-module.exports = {
+export {
   executeStep,
 };

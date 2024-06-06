@@ -1,10 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const multer = require('multer');
-const { authenticateToken } = require('../../middlewares/auth');
-const { convertPDFBufferToText } = require('../../services/documents/pdf/ocrService/ocrService');
-const { createDocument, processDocument } = require('../../services/documents/documentsService.js');
-const Document = require('../../models/Document/Document');
+import multer from 'multer';
+import { authenticateToken } from '../../middlewares/auth.js';
+import { createDocument, processDocument } from '../../services/documents/documentsService.js';
+import Document from '../../models/Document/Document.js';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -56,4 +55,4 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
     }
 });
 
-module.exports = router;
+export default router;

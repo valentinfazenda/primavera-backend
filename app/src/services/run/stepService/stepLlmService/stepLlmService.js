@@ -1,7 +1,7 @@
-const axios = require('axios');
-const Step = require('../../../../models/Step/Step');
-const { sendMessageToAzureOpenAI } = require('../../../llms/azureOpenAIService/azureOpenAIService');
-const { sendMessageToOpenAI } = require('../../../llms/openAIService/openAIService');
+import axios from 'axios';
+import Step from '../../../../models/Step/Step.js';
+import { sendMessageToAzureOpenAI } from '../../../llms/azureOpenAIService/azureOpenAIService.js';
+import { sendMessageToOpenAI } from '../../../llms/openAIService/openAIService.js';
 
 async function executeStepLlm(stepId, userId, input = '', socket = null) {
   try {
@@ -24,6 +24,6 @@ async function executeStepLlm(stepId, userId, input = '', socket = null) {
   }
 }
 
-module.exports = {
+export {
     executeStepLlm,
 };

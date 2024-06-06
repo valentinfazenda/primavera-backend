@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { authenticateToken } = require('../../../middlewares/auth');
-const uploadImage = require('../../../middlewares/upload');
-const User = require('../../../models/User/User');
-const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const s3 = require('../../../config/aws');
+import { authenticateToken } from '../../../middlewares/auth.js';
+import uploadImage from '../../../middlewares/upload.js';
+import User from '../../../models/User/User.js';
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import s3 from '../../../config/aws.js';
 
 const deleteImageFromS3 = async (imageUrl) => {
     if (!imageUrl) return;
@@ -56,4 +56,4 @@ router.post('', authenticateToken, uploadImage.single('profilePicture'), async (
     }
 });
 
-module.exports = router;
+export default router;

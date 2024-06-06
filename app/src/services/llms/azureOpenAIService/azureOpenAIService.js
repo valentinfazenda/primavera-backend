@@ -1,7 +1,7 @@
-const axios = require('axios');
-const User = require('../../../models/User/User');
-const Company = require('../../../models/Company/Company');
-const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
+import axios from 'axios';
+import User from '../../../models/User/User.js';
+import Company from '../../../models/Company/Company.js';
+import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
 
 async function sendMessageToAzureOpenAI(userId, messages, modelName,  stepId, socket) {
     // Fetch the user
@@ -44,6 +44,6 @@ async function sendMessageToAzureOpenAI(userId, messages, modelName,  stepId, so
     return response;
 }
 
-module.exports = {
+export {
     sendMessageToAzureOpenAI
 };

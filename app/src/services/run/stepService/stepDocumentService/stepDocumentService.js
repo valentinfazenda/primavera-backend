@@ -1,8 +1,6 @@
-const axios = require('axios');
-const Step = require('../../../../models/Step/Step');
-const Document = require('../../../../models/Document/Document');
-const { convertPDFBufferToText } = require('../../../documents/pdf/ocrService/ocrService');
-const { processExcelBuffer } = require('../../../documents/xlsx/xlsxService');
+import axios from 'axios';
+import Step from '../../../../models/Step/Step.js';
+import Document from '../../../../models/Document/Document.js';
 
 async function executeStepDocument(stepId, userId, input = '') {
   try {
@@ -25,6 +23,6 @@ async function executeStepDocument(stepId, userId, input = '') {
   }
 }
 
-module.exports = {
+export {
     executeStepDocument,
 };

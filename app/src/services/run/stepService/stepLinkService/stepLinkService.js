@@ -1,7 +1,7 @@
-const axios = require('axios');
-const Step = require('../../../../models/Step/Step');
-const { extractTextFromURL } = require('../../../links/linkService');
-const { DocumentOCR } = require('../../../documents/pdf/ocrService/ocrService_old');
+import axios from 'axios';
+import Step from '../../../../models/Step/Step.js';
+import { extractTextFromURL } from '../../../links/linkService.js';
+import { DocumentOCR } from '../../../documents/pdf/ocrService/ocrService_old.js';
 
 async function executeStepLink(stepId, userId, input = '') {
   try {
@@ -46,6 +46,6 @@ async function executeStepLink(stepId, userId, input = '') {
   }
 }
 
-module.exports = {
+export {
   executeStepLink,
 };

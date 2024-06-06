@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const CompanySchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -7,4 +7,6 @@ const CompanySchema = new mongoose.Schema({
     azureOpenAIApiKey: { type: String, required: true },
 });
 
-module.exports = mongoose.model('Company', CompanySchema);
+const Company = mongoose.model('Company', CompanySchema);
+
+export default Company;

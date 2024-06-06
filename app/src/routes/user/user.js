@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { authenticateToken } = require('../../middlewares/auth');
-const User = require('../../models/User/User');
+import { authenticateToken } from '../../middlewares/auth.js';
+import User from '../../models/User/User.js';
 
 router.patch('/update', authenticateToken, async (req, res) => {
         const userId = req.user.id;
@@ -33,4 +33,4 @@ router.get('/details', authenticateToken, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

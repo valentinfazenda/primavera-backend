@@ -1,6 +1,6 @@
-const Document = require('../../models/Document/Document');
-const { convertPDFBufferToText } = require('./pdf/ocrService/ocrService');
-const { convertExcelBufferToText } = require('./xlsx/xlsxService');
+import Document from '../../models/Document/Document.js';
+import { convertPDFBufferToText } from './pdf/ocrService/ocrService.js';
+import { convertExcelBufferToText } from './xlsx/xlsxService.js';
 
 async function createDocument(fileBuffer, originalName) {
 
@@ -47,7 +47,7 @@ async function processDocument(documentId, buffer, extension) {
     await Document.findByIdAndUpdate(documentId, { fulltext });
 }
 
-module.exports = {
+export {
     createDocument,
     processDocument
   };

@@ -1,6 +1,6 @@
-const axios = require('axios');
-const User = require('../../../models/User/User');
-const { OpenAI } = require('openai');
+import axios from 'axios';
+import User from '../../../models/User/User.js';
+import { OpenAI } from 'openai';
 
 async function sendMessageToOpenAI(userId, messages, model, stepId, socket) {
     // Retrieve user from database and immediately check for errors
@@ -38,6 +38,6 @@ async function sendMessageToOpenAI(userId, messages, model, stepId, socket) {
     return response;
 }
 
-module.exports = {
+export {
     sendMessageToOpenAI
 };

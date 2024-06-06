@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { authenticateToken } = require('../../../middlewares/auth');
-const { executeFlow } = require('../../../services/run/flowService/flowService');
+import { authenticateToken } from '../../../middlewares/auth.js';
+import executeFlow from '../../../services/run/flowService/flowService.js';
 
 router.post('', authenticateToken, async (req, res) => {
   try {
@@ -21,4 +21,4 @@ router.post('', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router ;

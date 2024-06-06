@@ -1,10 +1,10 @@
-const { PDFDocument } = require('pdf-lib');
-const { fromBuffer } = require('pdf2pic');
-const Tesseract = require('tesseract.js');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+import { PDFDocument } from 'pdf-lib';
+import { fromBuffer } from 'pdf2pic';
+import Tesseract from 'tesseract.js';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 // Convert PDF Buffer to Images and return text
 async function convertPDFBufferToText(pdfBuffer) {
@@ -57,6 +57,6 @@ async function convertPDFBufferToText(pdfBuffer) {
 }
 
 
-module.exports = {
+export {
   convertPDFBufferToText
 };

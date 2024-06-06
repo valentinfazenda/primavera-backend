@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const AzureOpenAIDeploymentSchema = new mongoose.Schema({
     enpoint: { type: String, required: true },
@@ -7,4 +7,6 @@ const AzureOpenAIDeploymentSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('AzureOpenAIEndpoints', AzureOpenAIDeploymentSchema);
+const AzureOpenAIEndpoints = mongoose.model('AzureOpenAIEndpoints', AzureOpenAIDeploymentSchema);
+
+export default Company;

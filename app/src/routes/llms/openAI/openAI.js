@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { authenticateToken } = require('../../../middlewares/auth');
-const { sendMessageToOpenAI } = require('../../../services/llms/openAIService/openAIService');
+import { authenticateToken } from '../../../middlewares/auth.js';
+import { sendMessageToOpenAI } from '../../../services/llms/openAIService/openAIService.js';
 
 router.post('', authenticateToken, async (req, res) => {
     try {
@@ -23,4 +23,4 @@ router.post('', authenticateToken, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

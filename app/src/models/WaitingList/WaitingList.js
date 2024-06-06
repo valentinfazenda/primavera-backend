@@ -1,6 +1,6 @@
 // models/WaitingList.js
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
 const WaitingListSchema = new Schema({
   email: {
@@ -15,4 +15,6 @@ const WaitingListSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model('WaitingList', WaitingListSchema);
+const WaitingList = mongoose.model('WaitingList', WaitingListSchema);
+
+export default WaitingList;

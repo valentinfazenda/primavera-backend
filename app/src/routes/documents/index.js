@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const documentsRouter = require('./documents');
+import documentsRouter from './documents.js';
 
 router.use('', documentsRouter);
 
-module.exports = documentsRouter;
+export default documentsRouter;

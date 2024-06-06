@@ -1,4 +1,4 @@
-const ExcelJS = require('exceljs');
+import ExcelJS from 'exceljs';
 
 async function excelBufferToString(buffer) {
   try {
@@ -38,6 +38,6 @@ async function convertExcelBufferToText(buffer) {
   }
 }
 
-module.exports = {
+export {
   convertExcelBufferToText
 };

@@ -1,20 +1,19 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require("socket.io");
-const { handleConnection } = require('./socket')
-const connectDB = require('./app/src/config/db');
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
-const llmsRoute = require('./app/src/routes/llms');
-const documentsRoute = require('./app/src/routes/documents');
-const flowsRoute = require('./app/src/routes/flows');
-const modelsRoute = require('./app/src/routes/models');
-const userRoute = require('./app/src/routes/user');
-const authRoute = require('./app/src/routes/auth');
-const waitingListRoute = require('./app/src/routes/waitingList');
-const {authenticateToken, authenticateSocket} = require('./app/src/middlewares/auth');
-require('dotenv').config();
-
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import { handleConnection } from './socket.js';
+import connectDB from './app/src/config/db.js';
+import jwt from 'jsonwebtoken';
+import bodyParser from 'body-parser';
+import llmsRoute from './app/src/routes/llms/index.js';
+import documentsRoute from './app/src/routes/documents/index.js';
+import flowsRoute from './app/src/routes/flows/index.js';
+import modelsRoute from './app/src/routes/models/index.js';
+import userRoute from './app/src/routes/user/index.js';
+import authRoute from './app/src/routes/auth.js';
+import waitingListRoute from './app/src/routes/waitingList.js';
+import { authenticateToken, authenticateSocket } from './app/src/middlewares/auth.js';
+import 'dotenv/config';
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -43,4 +42,4 @@ server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-module.exports = { io };
+export { io };

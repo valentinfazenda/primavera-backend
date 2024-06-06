@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const WaitingList = require('../models/WaitingList/WaitingList');
+import WaitingList from '../models/WaitingList/WaitingList.js';
 
 router.post('/join', async (req, res) => {
     const { email } = req.body;
@@ -26,4 +26,4 @@ router.post('/join', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

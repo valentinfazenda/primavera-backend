@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { io } = require('../../../../server');
-const { authenticateToken } = require('../../middlewares/auth');
-const { DocumentOCR } = require('../../services/documents/pdf/ocrService/ocrService');
+import { io } from '../../../../server';
+import { authenticateToken } from '../../middlewares/auth';
+import { DocumentOCR } from '../../services/documents/pdf/ocrService/ocrService';
 
 router.post('/pdfOCR', authenticateToken, async (req, res) => {
     try {
@@ -40,11 +40,11 @@ router.post('/pdfOCR', authenticateToken, async (req, res) => {
 });
 
 
-const { v4: uuidv4 } = require('uuid');
+import { v4 as uuidv4 } from ('uuid');
 
 function uniqueIdFunction(req) {
   const idFromRequest = req?.body?.socketId;
   return idFromRequest || uuidv4();
 }
 
-module.exports = router;
+export default router;

@@ -1,6 +1,6 @@
-const Flow = require('../../../models/Flow/Flow');
-const Step = require('../../../models/Step/Step');
-const { executeStep } = require('../stepService/stepService');
+import Flow from '../../../models/Flow/Flow.js';
+import Step from '../../../models/Step/Step.js';
+import { executeStep } from '../stepService/stepService.js';
 
 async function executeFlow(flowId, userId, socket) {
   try {
@@ -31,6 +31,4 @@ async function executeFlow(flowId, userId, socket) {
   }
 }
 
-module.exports = {
-  executeFlow
-};
+export default executeFlow;

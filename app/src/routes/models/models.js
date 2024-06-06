@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { authenticateToken } = require('../../middlewares/auth');
-const Model = require('../../models/Model/Model');
-const Flow = require('../../models/Flow/Flow');
-const Step = require('../../models/Step/Step');
+import { authenticateToken } from '../../middlewares/auth.js';
+import Model from '../../models/Model/Model.js';
+import Flow from '../../models/Flow/Flow.js';
+import Step from '../../models/Step/Step.js';
 
 // List available models for a user
 router.get('/list', authenticateToken, async (req, res) => {
@@ -126,4 +126,4 @@ router.get('/most-recurrent-model', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

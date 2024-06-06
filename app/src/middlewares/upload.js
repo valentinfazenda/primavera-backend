@@ -1,8 +1,8 @@
-const multer = require('multer');
-const multerS3 = require('multer-s3');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const s3 = require('../config/aws');
-const path = require('path');
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import s3 from '../config/aws.js';
+import path from 'path';
 
 const uploadImage = multer({
     storage: multerS3({
@@ -24,4 +24,4 @@ const uploadImage = multer({
     }
 });
 
-module.exports = uploadImage;
+export default uploadImage;

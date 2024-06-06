@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { authenticateToken } = require('../../../middlewares/auth');
-const Step = require('../../../models/Step/Step');
-const mongoose = require('mongoose');
+import { authenticateToken } from '../../../middlewares/auth.js';
+import Step from '../../../models/Step/Step.js';
+import mongoose from 'mongoose';
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -102,4 +102,4 @@ router.post('/edit', authenticateToken, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
