@@ -21,7 +21,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 const authenticateSocket = (socket, next) => {
-    const token = socket.handshake.auth?.token || socket.handshake.headers?.token;
+    const token = socket.handshake.auth?.token.replace('Bearer ', '') || socket.handshake.headers?.token.replace('Bearer ', '');
     if (!token) {
         return next(new Error('Authentication error'));
     }

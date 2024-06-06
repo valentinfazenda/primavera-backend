@@ -26,7 +26,6 @@ const io = new Server(server, {
 });
 io.use(authenticateSocket);
 io.on('connection', (socket) => {
-  console.log('a user connected');
   handleConnection(socket);
 });
 
