@@ -34,11 +34,11 @@ async function sendMessageToAzureOpenAI(userId, messages, modelName,  stepId, so
         const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
         response += content;
         if (socket && content) {
-            socket.emit('answer', { stepId, response, status: 'loading'});
+            socket.emit('message', { stepId, response, status: 'loading'});
         }
     }
     if (socket && response) {
-        socket.emit('answer', { stepId, response, status: 'done'});
+        socket.emit('message', { stepId, response, status: 'done'});
     }
     
     return response;
