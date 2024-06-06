@@ -7,7 +7,6 @@ function handleConnection(socket) {
             socket.emit('authenticated', { status: 'success' });
             if (msg.flowId) {
                 const messageContent = await executeFlow(msg.flowId, socket.user.id, socket);
-                console.log(messageContent)
                 socket.emit('message', messageContent);
             } else {
                 console.error('missing flowId');
