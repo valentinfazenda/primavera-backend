@@ -23,7 +23,7 @@ async function executeFlow(flowId, userId, socket) {
     } else {
       results = await Promise.all(startingSteps.map(step => executeStep(runId, step._id, userId)));
     }
-
+    results = results.filter(result => result.length > 0)
     return { success: true, results };
   } catch (error) {
     console.error(error);
