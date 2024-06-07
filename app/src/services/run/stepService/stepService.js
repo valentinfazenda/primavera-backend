@@ -1,62 +1,81 @@
 import axios from 'axios';
 import Step from '../../../models/Step/Step.js';
+import Historical_run from '../../../models/Historical_run/Historical_run.js';
 import { executeStepLlm } from './stepLlmService/stepLlmService.js';
 import { executeStepDocument } from './stepDocumentService/stepDocumentService.js';
 import { executeStepLink } from './stepLinkService/stepLinkService.js';
 
-let stepDependencies = {};
-
-async function executeStep(stepId, userId, input = '', socket = null) {
+// Main function to execute a step
+async function executeStep(runId, stepId, userId, socket = null) {
   try {
     const step = await Step.findById(stepId);
-    if (!step) {
-      throw new Error("Step not found");
+    if (!step) throw new Error("Step not found");
+
+    const isStepAlreadyRunning = await Historical_run.exists({ runId, stepId });
+    if (isStepAlreadyRunning) {
+      console.log(`Step ${stepId} is already running.`);
+      return null;
     }
 
-    if (!stepDependencies[stepId]) {
-      stepDependencies[stepId] = {
-        count: step.previousSteps.length,
-        inputs: [],
-        completed: false
-      };
-    }
+    console.log("Executing step:", stepId);
+    const input = await startStep(step, runId);
 
-    if (input !== '') {
-      stepDependencies[stepId].inputs.push(input);
-      stepDependencies[stepId].count--;
-    }
+    const response = await executeStepType(step.type, stepId, userId, input, socket);
 
-    if (stepDependencies[stepId].count > 0) {
-      return;
-    }
+    await Historical_run.findOneAndUpdate(
+      { runId, stepId },
+      { $set: { result: response, completed: true } },
+      { new: true, upsert: true }
+    );
 
-    let response;
-    if (step.type == "llm") {
-      response = await executeStepLlm(stepId, userId, stepDependencies[stepId].inputs, socket, stepId);
-    } else if (step.type == "document") {
-      response = await executeStepDocument(stepId, userId, stepDependencies[stepId].inputs, socket);
-    } else if (step.type == "link") {
-      response = await executeStepLink(stepId, userId, stepDependencies[stepId].inputs, socket);
-    } else {
-      throw new Error("Step type not found");
-    }
-
-    stepDependencies[stepId].completed = true;
-    delete stepDependencies[stepId];
-    if (step.endingStep) {
-      return response;
-    } else {
-      const nextStepPromises = step.nextSteps.map(nextStepId =>
-        executeStep(nextStepId, userId, response, socket)
-      );
-      return await Promise.all(nextStepPromises);
-    }
+    return step.endingStep ? response : await executeNextSteps(step.nextSteps, runId, userId, socket);
   } catch (error) {
-    console.error(error);
-    throw new Error("Failed to execute step: " + error.message);
+    console.error(`Failed to execute step: ${error.message}`);
+    throw error;
   }
 }
 
-export {
-  executeStep,
-};
+// Function to handle different step types
+async function executeStepType(type, stepId, userId, input, socket) {
+  switch (type) {
+    case "llm": return executeStepLlm(stepId, userId, input, socket);
+    case "document": return executeStepDocument(stepId, userId, socket);
+    case "link": return executeStepLink(stepId, userId, socket);
+    default: throw new Error("Step type not found");
+  }
+}
+
+// Start a step and handle historical records
+async function startStep(step, runId) {
+  const historicalRecords = await Promise.all(step.previousSteps.map(
+    previousStepId => checkHistoricalData(runId, previousStepId)
+  ));
+
+  await Historical_run.create({ runId, stepId: step._id, completed: false });
+  return aggregateData(historicalRecords);
+}
+
+// Check historical data
+async function checkHistoricalData(runId, stepId) {
+  return Historical_run.findOne({ runId, stepId, completed: true }).exec();
+}
+
+// Aggregate data from previous steps
+function aggregateData(inputs) {
+  return inputs.filter(Boolean).join('; ');
+}
+
+// Execute next steps if current step is not the ending step
+async function executeNextSteps(nextSteps, runId, userId, socket) {
+  const nextStepPromises = nextSteps.map(async nextStepId => {
+    const isNextStepRunning = await Historical_run.exists({ runId, stepId: nextStepId });
+    if (!isNextStepRunning) {
+      return executeStep(runId, nextStepId, userId, socket);
+    }
+  });
+
+  return Promise.all(nextStepPromises.filter(Boolean));
+}
+
+export { executeStep };
+

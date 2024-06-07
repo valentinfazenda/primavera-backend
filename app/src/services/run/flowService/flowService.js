@@ -1,5 +1,6 @@
 import Flow from '../../../models/Flow/Flow.js';
 import Step from '../../../models/Step/Step.js';
+import { v4 as uuidv4 } from 'uuid';
 import { executeStep } from '../stepService/stepService.js';
 
 async function executeFlow(flowId, userId, socket) {
@@ -15,13 +16,12 @@ async function executeFlow(flowId, userId, socket) {
     if (!startingSteps.length) {
       throw new Error("No starting steps found for this flow");
     }
-
+    const runId = uuidv4();
     let results;
-
     if (socket) { 
-      results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId, '', socket)));
+      results = await Promise.all(startingSteps.map(step => executeStep(runId, step._id, userId, '', socket)));
     } else {
-      results = await Promise.all(startingSteps.map(step => executeStep(step._id, userId)));
+      results = await Promise.all(startingSteps.map(step => executeStep(runId, step._id, userId)));
     }
 
     return { success: true, results };
