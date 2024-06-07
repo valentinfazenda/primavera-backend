@@ -10,15 +10,15 @@ async function executeStep(runId, stepId, userId, socket = null) {
   try {
     const step = await Step.findById(stepId);
     if (!step) throw new Error("Step not found");
-
-    const isStepAlreadyRunning = await Historical_run.exists({ runId, stepId });
-    if (isStepAlreadyRunning) {
-      console.log(`Step ${stepId} is already running.`);
-      return null;
-    }
+    await Historical_run.create({ runId, stepId: step._id, completed: false });
 
     console.log("Executing step:", stepId);
-    const input = await startStep(step, runId);
+    const historicalRecords = await Promise.all(step.previousSteps.map(
+      previousStepId => checkHistoricalData(runId, previousStepId)
+    ));
+  
+    await Historical_run.create({ runId, stepId: step._id, completed: false });
+    const input = await aggregateData(historicalRecords);
 
     const response = await executeStepType(step.type, stepId, userId, input, socket);
 
@@ -45,15 +45,6 @@ async function executeStepType(type, stepId, userId, input, socket) {
   }
 }
 
-// Start a step and handle historical records
-async function startStep(step, runId) {
-  const historicalRecords = await Promise.all(step.previousSteps.map(
-    previousStepId => checkHistoricalData(runId, previousStepId)
-  ));
-
-  await Historical_run.create({ runId, stepId: step._id, completed: false });
-  return aggregateData(historicalRecords);
-}
 
 // Check historical data
 async function checkHistoricalData(runId, stepId) {
@@ -67,14 +58,15 @@ function aggregateData(inputs) {
 
 // Execute next steps if current step is not the ending step
 async function executeNextSteps(nextSteps, runId, userId, socket) {
-  const nextStepPromises = nextSteps.map(async nextStepId => {
+  const results = [];
+  for (const nextStepId of nextSteps) {
     const isNextStepRunning = await Historical_run.exists({ runId, stepId: nextStepId });
     if (!isNextStepRunning) {
-      return executeStep(runId, nextStepId, userId, socket);
+      const result = await executeStep(runId, nextStepId, userId, socket);
+      results.push(result);
     }
-  });
-
-  return Promise.all(nextStepPromises.filter(Boolean));
+  }
+  return results.filter(Boolean);
 }
 
 export { executeStep };
