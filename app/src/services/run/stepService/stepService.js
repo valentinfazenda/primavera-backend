@@ -3,7 +3,7 @@ import Step from '../../../models/Step/Step.js';
 import Historical_run from '../../../models/Historical_run/Historical_run.js';
 import { executeStepLlm } from './stepLlmService/stepLlmService.js';
 import { executeStepDocument } from './stepDocumentService/stepDocumentService.js';
-//import { executeStepLink } from './stepLinkService/stepLinkService.js';
+import { executeStepLink } from './stepLinkService/stepLinkService.js';
 
 // Utility to create or update historical records
 async function updateHistoricalRecord(runId, stepId, result = null, completed = false) {

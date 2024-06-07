@@ -1,7 +1,6 @@
 import axios from 'axios';
 import Step from '../../../../models/Step/Step.js';
-import { extractTextFromURL } from '../../../links/linkService.js';
-import { DocumentOCR } from '../../../documents/pdf/ocrService/ocrService_old.js';
+import Document from '../../../../models/Document/Document.js';
 
 async function executeStepLink(stepId, userId, input = '') {
   try {
@@ -9,36 +8,13 @@ async function executeStepLink(stepId, userId, input = '') {
     if (!step) {
       throw new Error("Step not found");
     }
+    const document = await Document.findById(step.documentId);
+    if (!document) {
+      throw new Error("Document not found");
+    }
+    const documentStr = document.fulltext;
 
-    if (step.url.endwith("pdf")) {
-        documentStr = DocumentOCR(step.url);
-    }
-    else {
-        documentStr = extractTextFromURL(step.url);
-    }
-
-    const messages = [];
-    if (input != '') {
-        messages.push({
-            role: "user",
-            content: documentStr + input + "\n\n\nConsidering the above inputs the user wants to perform this task " + stepData + " Answer:"
-        });
-    } else {
-        messages.push({
-            role: "user",
-            content: documentStr + "\n\n\nConsidering the above inputs the user wants to perform this task " + stepData + " Answer:"
-        });
-    }
-
-    if (step.modelLlm = "AzureOpenAI") {
-      return await sendMessageToAzureOpenAI(userId, messages, step.modelName);
-    }
-    else if (step.modelLlm = "OpenAI") {
-        return await sendMessageToOpenAI(userId, messages, step.modelName);
-    }
-    else {
-        throw new Error("Model not found");
-    }
+    return documentStr;
 
   } catch (error) {
     console.error(error);
