@@ -4,6 +4,7 @@ import Historical_run from '../../../models/Historical_run/Historical_run.js';
 import { executeStepLlm } from './stepLlmService/stepLlmService.js';
 import { executeStepDocument } from './stepDocumentService/stepDocumentService.js';
 import { executeStepLink } from './stepLinkService/stepLinkService.js';
+import { executeStepIf } from './stepIfService/stepIfService.js';
 
 // Utility to create or update historical records
 async function updateHistoricalRecord(runId, stepId, result = null, completed = false) {
@@ -30,10 +31,12 @@ async function executeStep(runId, stepId, userId, socket = null) {
     ));
   
     const input = aggregateData(historicalRecords);
-    const response = await executeStepType(step.type, stepId, userId, input, socket);
+    const response = await executeStepType(step.type, stepId, userId, runId, input, socket);
 
     await updateHistoricalRecord(runId, step._id, response, true);
-
+    if (response == null){
+      return null;
+    }
     return step.endingStep ? response : await executeNextSteps(step.nextSteps, runId, userId, socket);
   } catch (error) {
     console.error(`Failed to execute step: ${error.message}`);
@@ -42,11 +45,12 @@ async function executeStep(runId, stepId, userId, socket = null) {
 }
 
 // Handler for different step types
-async function executeStepType(type, stepId, userId, input, socket) {
+async function executeStepType(type, stepId, userId, runId, input, socket) {
   const handlers = {
     llm: () => executeStepLlm(stepId, userId, input, socket),
     document: () => executeStepDocument(stepId, userId, socket),
-    link: () => executeStepLink(stepId, userId, socket)
+    link: () => executeStepLink(stepId, userId, socket),
+    if:() => executeStepIf(stepId, userId, runId, socket)
   };
   const handler = handlers[type];
   if (!handler) throw new Error("Step type not found");
