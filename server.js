@@ -1,9 +1,9 @@
 import express from 'express';
 import http from 'http';
+import cors from 'cors';
 import { Server } from 'socket.io';
 import { handleConnection } from './socket.js';
 import connectDB from './app/src/config/db.js';
-import jwt from 'jsonwebtoken';
 import bodyParser from 'body-parser';
 import llmsRoute from './app/src/routes/llms/index.js';
 import documentsRoute from './app/src/routes/documents/index.js';
@@ -20,15 +20,22 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "OPTIONS", "PATCH", "DELETE"],
     allowedHeaders: ["Authorization"],
-    credentials: true
+    crendentials: true
   }
 });
 io.use(authenticateSocket);
 io.on('connection', (socket) => {
   handleConnection(socket);
 });
+
+app.use(cors({
+  origin: 'http://localhost:3000', 
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 const PORT = process.env.PORT || 5000;
 
