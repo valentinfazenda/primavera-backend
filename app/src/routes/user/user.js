@@ -5,8 +5,8 @@ import User from '../../models/User/User.js';
 
 router.patch('/update', authenticateToken, async (req, res) => {
         const userId = req.user.id;
-        const { name, email, password, profilePicture, company } = req.body;
-        const update = { ...(name && { name }), ...(email && { email }), ...(password && { password }), ...(profilePicture && { profilePicture }), ...(company && { company }) };
+        const { firstName, lastName, email, password, profilePicture, company } = req.body;
+        const update = { ...(firstName && { firstName }), ...(lastName && { lastName }), ...(email && { email }), ...(password && { password }), ...(profilePicture && { profilePicture }), ...(company && { company }) };
         try {
             const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true }).orFail();
             res.status(200).json(updatedUser);
