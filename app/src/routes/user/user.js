@@ -2,11 +2,20 @@ import express from 'express';
 const router = express.Router();
 import { authenticateToken } from '../../middlewares/auth.js';
 import User from '../../models/User/User.js';
+import bcrypt from 'bcryptjs';
 
 router.patch('/update', authenticateToken, async (req, res) => {
         const userId = req.user.id;
         const { firstName, lastName, email, password, profilePicture, company } = req.body;
-        const update = { ...(firstName && { firstName }), ...(lastName && { lastName }), ...(email && { email }), ...(password && { password }), ...(profilePicture && { profilePicture }), ...(company && { company }) };
+        
+        const update = { ...(firstName && { firstName }), ...(lastName && { lastName }), ...(email && { email }), ...(profilePicture && { profilePicture }), ...(company && { company }) };
+
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            const encrypted_password = await bcrypt.hash(password, salt);
+            update.password = encrypted_password; 
+        }
+
         try {
             const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true }).orFail();
             res.status(200).json(updatedUser);
