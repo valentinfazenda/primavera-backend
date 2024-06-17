@@ -82,7 +82,6 @@ router.delete('/delete', authenticateToken, async (req, res) => {
 //return details for a specific model
 router.get('/details/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  console.log(id); 
   try {
       const model = await Model.findById(id);
       if (!model) {
