@@ -79,6 +79,27 @@ router.delete('/delete', authenticateToken, async (req, res) => {
   }
 });
 
+//return details for a specific model
+router.get('/details/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  console.log(id); 
+  try {
+      const model = await Model.findById(id);
+      if (!model) {
+          return res.status(404).json({ error: "Model not found" });
+      }
+
+      if (req.user.id !== model.userId.toString()) {
+          return res.status(403).json({ error: "Access denied" });
+      }
+
+      res.status(200).json(model);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+  }
+});
+
 // Find the most recurrent model name in steps for a user's flows
 router.get('/most-recurrent-model', authenticateToken, async (req, res) => {
   const userId = req.user.id;
