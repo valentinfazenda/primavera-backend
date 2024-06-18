@@ -4,18 +4,35 @@ import { authenticateToken } from '../../middlewares/auth.js';
 import Model from '../../models/Model/Model.js';
 import Flow from '../../models/Flow/Flow.js';
 import Step from '../../models/Step/Step.js';
+import User from '../../models/User/User.js';
 
 // List available models for a user
 router.get('/list', authenticateToken, async (req, res) => {
   try {
-    const models = await Model.find({ ownerId: req.user.id });
-    // Return a 404 status if no models are found, otherwise return the models list
-    res.status(models.length ? 200 : 404).json(models.length ? models : { message: "No models found for this user." });
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userModels = await Model.find({ ownerType: 'user', ownerId: userId });
+
+    let companyModels = [];
+    if (user.company) {
+      const companyId = user.company;
+      companyModels = await Model.find({ ownerType: 'company', ownerId: companyId });
+    }
+
+    const models = [...userModels, ...companyModels];
+
+    res.status(models.length ? 200 : 404).json(models.length ? models : { message: "No models found for this user or company." });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Create a new model
 router.post('/create', authenticateToken, async (req, res) => {
