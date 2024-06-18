@@ -8,7 +8,7 @@ import Step from '../../models/Step/Step.js';
 // List available models for a user
 router.get('/list', authenticateToken, async (req, res) => {
   try {
-    const models = await Model.find({ userId: req.user.id });
+    const models = await Model.find({ ownerId: req.user.id });
     // Return a 404 status if no models are found, otherwise return the models list
     res.status(models.length ? 200 : 404).json(models.length ? models : { message: "No models found for this user." });
   } catch (error) {
@@ -23,9 +23,10 @@ router.post('/create', authenticateToken, async (req, res) => {
   if (!name || !apiKey) {
     return res.status(400).json({ error: "Name and API Key are required" });
   }
+  const ownerType = 'user';
   
   try {
-    const newModel = new Model({ name, userId: req.user.id, apiKey, active });
+    const newModel = new Model({ name, ownerType, ownerId: req.user.id, apiKey, active });
     const savedModel = await newModel.save();
     res.status(201).json(savedModel);
   } catch (error) {
@@ -52,26 +53,42 @@ router.patch('/edit', authenticateToken, async (req, res) => {
 // Activate or deactivate a model
 router.patch('/activate', authenticateToken, async (req, res) => {
   const { id, active } = req.body;
+  
   try {
-    const updatedModel = await Model.findByIdAndUpdate(id, { active }, { new: true }).orFail();
+    const model = await Model.findById(id);
+
+    if (!model) {
+      return res.status(404).json({ error: "Model not found" });
+    }
+
+    if (req.user.id !== model.ownerId.toString()) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    model.active = active;
+    const updatedModel = await model.save();
     res.status(200).json(updatedModel);
   } catch (error) {
     console.error(error);
-    res.status(error.name === 'DocumentNotFoundError' ? 404 : 500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Delete a specific model
 router.delete('/delete', authenticateToken, async (req, res) => {
   const { id } = req.body;
 
   try {
-    const deletedModel = await Model.findByIdAndDelete(id);
+    const model = await Model.findById(id);
 
-    if (!deletedModel) {
+    if (!model) {
       return res.status(404).json({ error: "Model not found" });
     }
 
+    if (req.user.id !== model.ownerId.toString()) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const deletedModel = await Model.findByIdAndDelete(id);
     res.status(200).json({ message: "Model deleted successfully" });
   } catch (error) {
     console.error(error);
@@ -88,7 +105,7 @@ router.get('/details/:id', authenticateToken, async (req, res) => {
           return res.status(404).json({ error: "Model not found" });
       }
 
-      if (req.user.id !== model.userId.toString()) {
+      if (req.user.id !== model.ownerId.toString()) {
           return res.status(403).json({ error: "Access denied" });
       }
 
