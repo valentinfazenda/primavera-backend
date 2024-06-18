@@ -35,17 +35,26 @@ router.post('/create', authenticateToken, async (req, res) => {
   }
 });
 
-// Edit an existing model
 router.patch('/edit', authenticateToken, async (req, res) => {
   const { id, name, apiKey, active } = req.body;
   const update = { ...(name && { name }), ...(apiKey && { apiKey }), ...(active != null && { active }) };
 
   try {
-    const updatedModel = await Model.findByIdAndUpdate(id, update, { new: true }).orFail();
+    const model = await Model.findById(id);
+
+    if (!model) {
+      return res.status(404).json({ error: "Model not found" });
+    }
+
+    if (req.user.id !== model.ownerId.toString()) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    Object.assign(model, update);
+    const updatedModel = await model.save();
     res.status(200).json(updatedModel);
   } catch (error) {
     console.error(error);
-    // Differentiate between not found and other server errors
     res.status(error.name === 'DocumentNotFoundError' ? 404 : 500).json({ error: error.message });
   }
 });
