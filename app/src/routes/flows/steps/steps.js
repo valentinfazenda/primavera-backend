@@ -52,21 +52,31 @@ router.post('/list', authenticateToken, async (req, res) => {
 
 // Create a new step
 router.post('/create', authenticateToken, async (req, res) => {
-    const { name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data } = req.body;
+    const steps = req.body.steps;
 
-    if (!name || !flowId || !type) {
-        return sendErrorResponse(res, 400, "All required fields must be provided");
+    if (!steps || steps.length === 0) {
+        return sendErrorResponse(res, 400, "No steps provided");
+    }
+
+    if (steps.some(step => !step.name || !step.flowId || !step.type)) {
+        return sendErrorResponse(res, 400, "All required fields must be provided for each step");
     }
 
     try {
-        const newStep = new Step({ name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data });
-        const savedStep = await newStep.save();
-        res.status(201).json(savedStep);
+        const savedSteps = [];
+        for (const step of steps) {
+            const { name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data } = step;
+            const newStep = new Step({ name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data });
+            const savedStep = await newStep.save();
+            savedSteps.push(savedStep);
+        }
+        res.status(201).json(savedSteps);
     } catch (error) {
         console.error(error);
         sendErrorResponse(res, 500, error.message);
     }
 });
+
 
 // Edit an existing step
 router.post('/edit', authenticateToken, async (req, res) => {

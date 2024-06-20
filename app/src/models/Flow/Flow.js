@@ -1,11 +1,8 @@
 import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
 const flowSchema = new mongoose.Schema({
   name: {
-    type: String,
-    required: true,
-  },
-  userId: {
     type: String,
     required: true,
   },
@@ -14,10 +11,14 @@ const flowSchema = new mongoose.Schema({
     required: false,
     default: 'true',
   },
-  shared: {
-    type: Boolean,
-    required: false,
-    default: 'false',
+  ownerType: { 
+    type: String, 
+    required: true, 
+    enum: ['company', 'user'] 
+  },
+  ownerId: { 
+    type: Schema.Types.ObjectId, 
+    required: true,
   },
   modified: {
     type: Date,
