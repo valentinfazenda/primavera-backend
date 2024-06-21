@@ -3,6 +3,9 @@ const router = express.Router();
 import { authenticateToken } from '../../middlewares/auth.js';
 import Flow from '../../models/Flow/Flow.js';
 import Step from '../../models/Step/Step.js';
+import mongoose from 'mongoose';
+
+const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 router.get('/list', authenticateToken, async (req, res) => {
   try {
@@ -17,6 +20,25 @@ router.get('/list', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/details/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateObjectId(id)) {
+      return sendErrorResponse(res, 400, "Invalid Id");
+  }
+
+  try {
+      const flow = await Flow.findById(id);
+      if (!flow) {
+          return sendErrorResponse(res, 404, "Flow not found");
+      }
+      res.status(200).json(flow);
+  } catch (error) {
+      console.error(error);
+      sendErrorResponse(res, 500, error.message);
   }
 });
 
