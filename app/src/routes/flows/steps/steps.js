@@ -65,8 +65,8 @@ router.post('/create', authenticateToken, async (req, res) => {
     try {
         const savedSteps = [];
         for (const step of steps) {
-            const { name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data } = step;
-            const newStep = new Step({ name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data });
+            const { name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data, positionX, positionY } = step;
+            const newStep = new Step({ name, flowId, type, documentId, modelLlm, modelName, previousSteps, nextSteps, startingStep, endingStep, data, positionX, positionY });
             const savedStep = await newStep.save();
             savedSteps.push(savedStep);
         }
@@ -109,6 +109,20 @@ router.post('/edit', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error(error);
         sendErrorResponse(res, 500, error.message);
+    }
+});
+
+router.delete('/delete', authenticateToken, async (req, res) => {
+    const steptId = req.body.stepId;
+    try {
+        const stepDocument = await Step.findByIdAndDelete(steptId);
+        if (!stepDocument) {
+            return res.status(404).json({ error: "Step not found" });
+        }
+        res.status(200).json({ message: "Step deleted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
     }
 });
 
