@@ -80,24 +80,32 @@ router.post('/create', authenticateToken, async (req, res) => {
 
 // Edit an existing step
 router.post('/edit', authenticateToken, async (req, res) => {
-    const { id, column, value } = req.body;
+    const { id, updates } = req.body;
 
-    if (!id || !column || value === undefined) {
-        return sendErrorResponse(res, 400, "Id, column, and value must be provided");
+    if (!id || !updates || updates.length === 0) {
+        return sendErrorResponse(res, 400, "Step Id and updates must be provided");
     }
 
     if (!validateObjectId(id)) {
-        return sendErrorResponse(res, 400, "Invalid Id");
+        return sendErrorResponse(res, 400, "Invalid Step Id");
     }
 
-    if (!Step.schema.path(column)) {
-        return sendErrorResponse(res, 400, "Invalid column");
+    const updateObject = {};
+    for (const update of updates) {
+        const { column, value } = update;
+        if (!column || value === undefined) {
+            return sendErrorResponse(res, 400, "Each update must include a column and a value");
+        }
+        if (!Step.schema.path(column)) {
+            return sendErrorResponse(res, 400, `Invalid column: ${column}`);
+        }
+        updateObject[column] = value;
     }
 
     try {
         const updatedStep = await Step.findByIdAndUpdate(
             id,
-            { [column]: value },
+            { $set: updateObject },
             { new: true, runValidators: true }
         );
 
