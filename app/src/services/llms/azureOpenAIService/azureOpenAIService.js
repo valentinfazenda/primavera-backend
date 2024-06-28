@@ -1,33 +1,21 @@
-import axios from 'axios';
-import User from '../../../models/User/User.js';
-import Company from '../../../models/Company/Company.js';
+;import AzureOpenAIEndpoint from '../../../models/AzureOpenAIEndpoint/AzureOpenAIEndpoint.js';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
 
-async function sendMessageToAzureOpenAI(userId, messages, modelName,  stepId, socket) {
-    // Fetch the user
-    const user = await User.findById(userId);
-    if (!user) {
-        throw new Error("User not found");
-    }
-    if (!user.company) {
-        throw new Error("Company not found for user");
-    }
+async function sendMessageToAzureOpenAI( messages, model,  stepId, socket) {
 
-    // Fetch the company
-    const company = await Company.findOne({ name: user.company });
-    if (!company) {
-        throw new Error("Company details not found");
-    }
+    const azureOpenAIEndpoint = await AzureOpenAIEndpoint.findOne({ modelId: model._id }).orFail(new Error("AzureOpenAIEndpoint not found"));
+    const apiKey = model.apiKey;
 
-    const { azureOpenAIDeploymentName, azureOpenAIApiKey } = company;
-    if (!azureOpenAIDeploymentName || !azureOpenAIApiKey) {
+    const { azureOpenAIDeploymentName, modelDeploymentName } = azureOpenAIEndpoint;
+    if (!azureOpenAIDeploymentName || !apiKey) {
         throw new Error("Deployment name or API key details not found");
     }
 
-    const url = `https://${azureOpenAIDeploymentName}/`;
-    const client = new OpenAIClient(url, new AzureKeyCredential(azureOpenAIApiKey));
 
-    const events = await client.streamChatCompletions(modelName, messages);
+    const url = `https://${azureOpenAIDeploymentName}/`;
+    const client = new OpenAIClient(url, new AzureKeyCredential(apiKey));
+
+    const events = await client.streamChatCompletions(modelDeploymentName, messages);
     let response = '';
 
     for await (const event of events) {
