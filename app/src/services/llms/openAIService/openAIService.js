@@ -1,24 +1,21 @@
-import axios from 'axios';
-import User from '../../../models/User/User.js';
 import { OpenAI } from 'openai';
 
 async function sendMessageToOpenAI(userId, messages, model, stepId, socket) {
-    // Retrieve user from database and immediately check for errors
-    const user = await User.findById(userId).orFail(() => new Error("User not found"));
+    const apiKey = model.apiKey;
     
-    if (!user.APIKey) {
-        throw new Error("API Key is missing for user");
+    if (!apiKey) {
+        throw new Error("API Key is missing for model");
     }
     
     // Initialize OpenAI client with the user's API Key
     const openai = new OpenAI({
-        apiKey: user.APIKey
+        apiKey
     });
 
     // Send message to OpenAI and await the stream of events
     const events = await openai.chat.completions.create({
         messages: messages,
-        model: model,
+        model: model.name,
         stream: true
     });
 
