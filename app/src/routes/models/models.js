@@ -5,6 +5,7 @@ import Model from '../../models/Model/Model.js';
 import Flow from '../../models/Flow/Flow.js';
 import Step from '../../models/Step/Step.js';
 import User from '../../models/User/User.js';
+import AzureOpenAIEndpoint from '../../models/AzureOpenAIEndpoint/AzureOpenAIEndpoint.js';
 
 // List available models for a user
 router.get('/list', authenticateToken, async (req, res) => {
@@ -34,9 +35,8 @@ router.get('/list', authenticateToken, async (req, res) => {
 });
 
 
-// Create a new model
 router.post('/create', authenticateToken, async (req, res) => {
-  const { name, apiKey, provider, active = true } = req.body;
+  const { name, apiKey, provider, active = true, azureOpenAIDeploymentName, modelDeploymentName } = req.body;
   if (!name || !apiKey) {
     return res.status(400).json({ error: "Name and API Key are required" });
   }
@@ -45,6 +45,18 @@ router.post('/create', authenticateToken, async (req, res) => {
   try {
     const newModel = new Model({ name, ownerType, provider, ownerId: req.user.id, apiKey, active });
     const savedModel = await newModel.save();
+
+    // Check if the provider is AzureOpenAI and create an AzureOpenAIEndpoint entry
+    if (provider === 'AzureOpenAI' && azureOpenAIDeploymentName && modelDeploymentName) {
+      const newEndpoint = new AzureOpenAIEndpoint({
+        modelId: savedModel._id,
+        azureOpenAIDeploymentName,
+        modelDeploymentName,
+        modelApiKey: apiKey 
+      });
+      await newEndpoint.save();
+    }
+
     res.status(201).json(savedModel);
   } catch (error) {
     console.error(error);
