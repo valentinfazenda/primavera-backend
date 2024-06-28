@@ -9,6 +9,7 @@ const modelSchema = new Schema({
     required: true, 
     enum: ['company', 'user'] 
   },
+  provider:"string",
   ownerId: { 
     type: Schema.Types.ObjectId, 
     required: true,

@@ -36,14 +36,14 @@ router.get('/list', authenticateToken, async (req, res) => {
 
 // Create a new model
 router.post('/create', authenticateToken, async (req, res) => {
-  const { name, apiKey, active = true } = req.body;
+  const { name, apiKey, provider, active = true } = req.body;
   if (!name || !apiKey) {
     return res.status(400).json({ error: "Name and API Key are required" });
   }
   const ownerType = 'user';
   
   try {
-    const newModel = new Model({ name, ownerType, ownerId: req.user.id, apiKey, active });
+    const newModel = new Model({ name, ownerType, provider, ownerId: req.user.id, apiKey, active });
     const savedModel = await newModel.save();
     res.status(201).json(savedModel);
   } catch (error) {
