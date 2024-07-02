@@ -152,14 +152,16 @@ router.post('/connect', authenticateToken, async (req, res) => {
         // Add targetStepId to the nextSteps of the source step
         const sourceStepUpdate = await Step.findByIdAndUpdate(
             sourceStepId,
-            { $addToSet: { nextSteps: targetStepId } },
+            { $addToSet: { nextSteps: targetStepId },
+            $set: { endingStep: false}},
             { new: true, session }
         );
 
         // Add sourceStepId to the previousSteps of the target step
         const targetStepUpdate = await Step.findByIdAndUpdate(
             targetStepId,
-            { $addToSet: { previousSteps: sourceStepId } },
+            { $addToSet: { previousSteps: sourceStepId },
+              $set: { startingStep: false}},
             { new: true, session }
         );
 
@@ -191,9 +193,13 @@ router.post('/disconnect', authenticateToken, async (req, res) => {
         return sendErrorResponse(res, 400, "Both sourceStepId and targetStepId are required");
     }
 
+    const sourceStep = await Step.findById(sourceStepId);
+    const targetStep = await Step.findById(targetStepId);
+
     if (!validateObjectId(sourceStepId) || !validateObjectId(targetStepId)) {
         return sendErrorResponse(res, 400, "Invalid Step ID(s)");
     }
+    console.log(sourceStep.nextSteps);
 
     const session = await mongoose.startSession();
     try {
@@ -201,14 +207,16 @@ router.post('/disconnect', authenticateToken, async (req, res) => {
         // Remove targetStepId from the nextSteps of the source step
         const sourceStepUpdate = await Step.findByIdAndUpdate(
             sourceStepId,
-            { $pull: { nextSteps: targetStepId } },
+            { $pull: { nextSteps: targetStepId },
+              $set: { endingStep: (sourceStep.nextSteps.length === 1) } },
             { new: true, session }
         );
 
         // Remove sourceStepId from the previousSteps of the target step
         const targetStepUpdate = await Step.findByIdAndUpdate(
             targetStepId,
-            { $pull: { previousSteps: sourceStepId } },
+            { $pull: { previousSteps: sourceStepId },
+              $set: { startingStep: (targetStep.previousSteps.length === 1) } },
             { new: true, session }
         );
 
