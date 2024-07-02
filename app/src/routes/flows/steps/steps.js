@@ -121,13 +121,47 @@ router.post('/edit', authenticateToken, async (req, res) => {
 });
 
 router.delete('/delete', authenticateToken, async (req, res) => {
-    const steptId = req.body.stepId;
+    const stepId = req.body.stepId;
     try {
-        const stepDocument = await Step.findByIdAndDelete(steptId);
+        const stepDocument = await Step.findById(stepId);
         if (!stepDocument) {
             return res.status(404).json({ error: "Step not found" });
         }
-        res.status(200).json({ message: "Step deleted successfully" });
+
+        const session = await mongoose.startSession();
+        try {
+            session.startTransaction();
+
+            if (stepDocument.previousSteps && stepDocument.previousSteps.length) {
+                for (const previousStepId of stepDocument.previousSteps) {
+                    const previousStep = await Step.findById(previousStepId).session(session);
+                    await Step.findByIdAndUpdate(previousStepId, {
+                        $pull: { nextSteps: stepId },
+                        $set: { endingStep: previousStep.nextSteps.length === 1 }
+                    }, { session });
+                }
+            }
+
+            if (stepDocument.nextSteps && stepDocument.nextSteps.length) {
+                for (const nextStepId of stepDocument.nextSteps) {
+                    const nextStep = await Step.findById(nextStepId).session(session);
+                    await Step.findByIdAndUpdate(nextStepId, {
+                        $pull: { previousSteps: stepId },
+                        $set: { startingStep: nextStep.previousSteps.length === 1 }
+                    }, { session });
+                }
+            }
+
+            await Step.findByIdAndDelete(stepId, { session });
+
+            await session.commitTransaction();
+            session.endSession();
+            res.status(200).json({ message: "Step deleted successfully" });
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: error.message });
