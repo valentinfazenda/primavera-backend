@@ -134,4 +134,104 @@ router.delete('/delete', authenticateToken, async (req, res) => {
     }
 });
 
+router.post('/connect', authenticateToken, async (req, res) => {
+    
+    const { sourceStepId, targetStepId } = req.body;
+
+    if (!sourceStepId || !targetStepId) {
+        return sendErrorResponse(res, 400, "Both sourceStepId and targetStepId are required");
+    }
+
+    if (!validateObjectId(sourceStepId) || !validateObjectId(targetStepId)) {
+        return sendErrorResponse(res, 400, "Invalid Step ID(s)");
+    }
+
+    const session = await mongoose.startSession();
+    try {
+        session.startTransaction();
+        // Add targetStepId to the nextSteps of the source step
+        const sourceStepUpdate = await Step.findByIdAndUpdate(
+            sourceStepId,
+            { $addToSet: { nextSteps: targetStepId } },
+            { new: true, session }
+        );
+
+        // Add sourceStepId to the previousSteps of the target step
+        const targetStepUpdate = await Step.findByIdAndUpdate(
+            targetStepId,
+            { $addToSet: { previousSteps: sourceStepId } },
+            { new: true, session }
+        );
+
+        if (!sourceStepUpdate || !targetStepUpdate) {
+            await session.abortTransaction();
+            session.endSession();
+            return sendErrorResponse(res, 404, "One or both steps not found");
+        }
+
+        await session.commitTransaction();
+        session.endSession();
+        res.status(200).json({
+            message: "Steps connected successfully",
+            sourceStep: sourceStepUpdate,
+            targetStep: targetStepUpdate
+        });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        console.error(error);
+        sendErrorResponse(res, 500, error.message);
+    }
+});
+
+router.post('/disconnect', authenticateToken, async (req, res) => {
+    const { sourceStepId, targetStepId } = req.body;
+
+    if (!sourceStepId || !targetStepId) {
+        return sendErrorResponse(res, 400, "Both sourceStepId and targetStepId are required");
+    }
+
+    if (!validateObjectId(sourceStepId) || !validateObjectId(targetStepId)) {
+        return sendErrorResponse(res, 400, "Invalid Step ID(s)");
+    }
+
+    const session = await mongoose.startSession();
+    try {
+        session.startTransaction();
+        // Remove targetStepId from the nextSteps of the source step
+        const sourceStepUpdate = await Step.findByIdAndUpdate(
+            sourceStepId,
+            { $pull: { nextSteps: targetStepId } },
+            { new: true, session }
+        );
+
+        // Remove sourceStepId from the previousSteps of the target step
+        const targetStepUpdate = await Step.findByIdAndUpdate(
+            targetStepId,
+            { $pull: { previousSteps: sourceStepId } },
+            { new: true, session }
+        );
+
+        if (!sourceStepUpdate || !targetStepUpdate) {
+            await session.abortTransaction();
+            session.endSession();
+            return sendErrorResponse(res, 404, "One or both steps not found");
+        }
+
+        await session.commitTransaction();
+        session.endSession();
+        res.status(200).json({
+            message: "Steps disconnected successfully",
+            sourceStep: sourceStepUpdate,
+            targetStep: targetStepUpdate
+        });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        console.error(error);
+        sendErrorResponse(res, 500, error.message);
+    }
+});
+
+
 export default router;
