@@ -135,19 +135,22 @@ router.delete('/delete', authenticateToken, async (req, res) => {
             if (stepDocument.previousSteps && stepDocument.previousSteps.length) {
                 for (const previousStepId of stepDocument.previousSteps) {
                     const previousStep = await Step.findById(previousStepId).session(session);
+                    console.log("previousStepId: " + previousStep.nextSteps.length);
                     await Step.findByIdAndUpdate(previousStepId, {
                         $pull: { nextSteps: stepId },
-                        $set: { endingStep: previousStep.nextSteps.length === 1 }
+                        $set: { endingStep: previousStep.nextSteps.length == 1 }
                     }, { session });
                 }
             }
+            
 
             if (stepDocument.nextSteps && stepDocument.nextSteps.length) {
                 for (const nextStepId of stepDocument.nextSteps) {
                     const nextStep = await Step.findById(nextStepId).session(session);
+                    console.log("nextStepId: " + nextStep.previousSteps.length);
                     await Step.findByIdAndUpdate(nextStepId, {
                         $pull: { previousSteps: stepId },
-                        $set: { startingStep: nextStep.previousSteps.length === 1 }
+                        $set: { startingStep: nextStep.previousSteps.length == 1 }
                     }, { session });
                 }
             }
