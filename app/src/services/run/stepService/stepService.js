@@ -24,11 +24,13 @@ async function executeStep(runId, stepId, userId, socket = null) {
     if (!step) throw new Error("Step not found");
 
     await updateHistoricalRecord(runId, step._id);
+    console.log("previous steps", step.previousSteps);
 
-    console.log("Executing step:", stepId);
+    console.log("Ready to execute :", stepId);
     const historicalRecords = await Promise.all(step.previousSteps.map(
       previousStepId => checkHistoricalData(runId, previousStepId)
     ));
+    console.log("Executing Step: ", stepId)
   
     const input = aggregateData(historicalRecords);
     const response = await executeStepType(step.type, stepId, userId, runId, input, socket);
@@ -59,7 +61,12 @@ async function executeStepType(type, stepId, userId, runId, input, socket) {
 
 // Check and return historical data if completed
 async function checkHistoricalData(runId, stepId) {
-  return Historical_run.findOne({ runId, stepId, completed: true }).exec();
+  let result;
+  while (!result) {
+    result = await Historical_run.findOne({ runId, stepId, completed: true }).exec();
+    if (!result) await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second
+  }
+  return result;
 }
 
 // Combine data from completed previous steps
