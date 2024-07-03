@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { authenticateToken } from '../../../middlewares/auth.js';
 import Step from '../../../models/Step/Step.js';
+import Document from '../../../models/Document/Document.js';
 import mongoose from 'mongoose';
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -131,6 +132,15 @@ router.delete('/delete', authenticateToken, async (req, res) => {
         const session = await mongoose.startSession();
         try {
             session.startTransaction();
+
+            if (stepDocument.type === "document" && stepDocument.documentId) {
+                const documentToDelete = await Document.findById(stepDocument.documentId).session(session);
+                if (documentToDelete) {
+                    await Document.findByIdAndDelete(stepDocument.documentId, { session });
+                } else {
+                    console.log("No document found with id: " + stepDocument.documentId);
+                }
+            }
 
             if (stepDocument.previousSteps && stepDocument.previousSteps.length) {
                 for (const previousStepId of stepDocument.previousSteps) {
