@@ -154,6 +154,19 @@ router.delete('/delete', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
+    // If the model's provider is AzureOpenAI, delete the related AzureOpenAIEndpoint
+    if (model.provider === 'AzureOpenAI') {
+      const azureEndpoint = await AzureOpenAIEndpoint.findOne({ modelId: model._id });
+
+      if (azureEndpoint) {
+        await azureEndpoint.remove(); // Remove the AzureOpenAIEndpoint
+      } else {
+        // Optionally log that no endpoint was found but expected
+        console.log('No AzureOpenAIEndpoint found for this model, none deleted.');
+      }
+    }
+
+    // Proceed to delete the main model
     const deletedModel = await Model.findByIdAndDelete(id);
     res.status(200).json({ message: "Model deleted successfully" });
   } catch (error) {
@@ -161,6 +174,7 @@ router.delete('/delete', authenticateToken, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 //return details for a specific model
 router.get('/details/:id', authenticateToken, async (req, res) => {
