@@ -65,7 +65,9 @@ router.post('/create', authenticateToken, async (req, res) => {
 });
 
 router.patch('/edit', authenticateToken, async (req, res) => {
-  const { id, name, apiKey, active } = req.body;
+  const { id, name, apiKey, active, azureOpenAIDeploymentName, modelDeploymentName } = req.body;
+
+  // Prepare updates for the main model
   const update = { ...(name && { name }), ...(apiKey && { apiKey }), ...(active != null && { active }) };
 
   try {
@@ -79,14 +81,40 @@ router.patch('/edit', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
+    // Update the main model
     Object.assign(model, update);
     const updatedModel = await model.save();
+
+    // If the model's provider is AzureOpenAI, update the related AzureOpenAIEndpoint
+    if (model.provider === 'AzureOpenAI') {
+      const azureEndpoint = await AzureOpenAIEndpoint.findOne({ modelId: model._id });
+
+      if (azureEndpoint) {
+        if (azureOpenAIDeploymentName) {
+          azureEndpoint.azureOpenAIDeploymentName = azureOpenAIDeploymentName;
+        }
+        if (modelDeploymentName) {
+          azureEndpoint.modelDeploymentName = modelDeploymentName;
+        }
+        if (apiKey) {
+          azureEndpoint.modelApiKey = apiKey;
+        }
+
+        await azureEndpoint.save(); // Save the updated AzureOpenAIEndpoint
+      } else {
+        // Optionally handle the scenario where there is no endpoint found but expected to exist
+        console.log('No AzureOpenAIEndpoint found for this model, one may need to be created.');
+      }
+    }
+
+    // Return the updated model
     res.status(200).json(updatedModel);
   } catch (error) {
     console.error(error);
     res.status(error.name === 'DocumentNotFoundError' ? 404 : 500).json({ error: error.message });
   }
 });
+
 
 // Activate or deactivate a model
 router.patch('/activate', authenticateToken, async (req, res) => {
@@ -147,7 +175,22 @@ router.get('/details/:id', authenticateToken, async (req, res) => {
           return res.status(403).json({ error: "Access denied" });
       }
 
-      res.status(200).json(model);
+      const modelObject = model.toObject();
+
+      // Check if the provider is AzureOpenAI and fetch related deployment details
+      if (model.provider === 'AzureOpenAI') {
+        const azureEndpoint = await AzureOpenAIEndpoint.findOne({ modelId: model._id }).exec();
+        if (azureEndpoint) {
+          modelObject.azureOpenAIDeploymentName = azureEndpoint.azureOpenAIDeploymentName;
+          modelObject.modelDeploymentName = azureEndpoint.modelDeploymentName;
+        } else {
+          // Handle the case where no AzureOpenAIEndpoint data exists but is expected
+          modelObject.azureOpenAIDeploymentName = 'N/A';
+          modelObject.modelDeploymentName = 'N/A';
+        }
+      }
+
+      res.status(200).json(modelObject);
   } catch (error) {
       console.error(error);
       res.status(500).json({ error: error.message });
