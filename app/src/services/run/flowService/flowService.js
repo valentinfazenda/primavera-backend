@@ -10,6 +10,9 @@ async function executeFlow(flowId, userId, socket) {
       throw new Error("Flow not found");
     }
 
+    flow.runnedTimes = (flow.runnedTimes || 0) + 1;
+    await flow.save();
+
     // Fetching steps that belong to this flow and are starting steps
     const startingSteps = await Step.find({ flowId: flowId, startingStep: true });
     

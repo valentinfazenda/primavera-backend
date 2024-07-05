@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Flow from '../Flow/Flow.js';
+import { isRunnableFunctionWithParse } from 'openai/lib/RunnableFunction.mjs';
 
 const stepSchema = new mongoose.Schema({
   name: { type: String, required: true },
