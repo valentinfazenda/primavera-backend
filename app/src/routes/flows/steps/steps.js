@@ -92,18 +92,28 @@ router.post('/edit', authenticateToken, async (req, res) => {
     }
 
     const updateObject = {};
-    for (const update of updates) {
-        const { column, value } = update;
-        if (!column || value === undefined) {
-            return sendErrorResponse(res, 400, "Each update must include a column and a value");
-        }
-        if (!Step.schema.path(column)) {
-            return sendErrorResponse(res, 400, `Invalid column: ${column}`);
-        }
-        updateObject[column] = value;
-    }
+    let oldDocumentId;
 
     try {
+        const step = await Step.findById(id);
+        if (!step) {
+            return sendErrorResponse(res, 404, "Step not found");
+        }
+
+        for (const update of updates) {
+            const { column, value } = update;
+            if (!column || value === undefined) {
+                return sendErrorResponse(res, 400, "Each update must include a column and a value");
+            }
+            if (!Step.schema.path(column)) {
+                return sendErrorResponse(res, 400, `Invalid column: ${column}`);
+            }
+            if (column === 'documentId') {
+                oldDocumentId = step.documentId;
+            }
+            updateObject[column] = value;
+        }
+
         const updatedStep = await Step.findByIdAndUpdate(
             id,
             { $set: updateObject },
@@ -112,6 +122,11 @@ router.post('/edit', authenticateToken, async (req, res) => {
 
         if (!updatedStep) {
             return sendErrorResponse(res, 404, "Step not found");
+        }
+
+        // Check if documentId was updated and delete the old document if necessary
+        if (oldDocumentId && updateObject.documentId && oldDocumentId.toString() !== updateObject.documentId.toString()) {
+            await Document.findByIdAndDelete(oldDocumentId);
         }
 
         res.status(200).json(updatedStep);

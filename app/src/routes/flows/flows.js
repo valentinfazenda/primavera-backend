@@ -84,12 +84,12 @@ router.delete('/delete', authenticateToken, async (req, res) => {
 
 // Edit an existing flow
 router.patch('/edit', authenticateToken, async (req, res) => {
-  const { name, status, ownerType, ownerId, modified, runnedTimes } = req.body;
+  const { id, name, status, ownerType, ownerId, modified, runnedTimes } = req.body;
   const update = { ...(name && { name }), ...(status && { status }), ...(ownerType && { ownerType }), ...(ownerId && { ownerId }), ...(modified && { modified }), ...(runnedTimes && { runnedTimes }) };
 
   try {
-    const updatedModel = await Model.findByIdAndUpdate(id, update, { new: true }).orFail();
-    res.status(200).json(updatedModel);
+    const updatedFlow = await Flow.findByIdAndUpdate(id, update, { new: true }).orFail();
+    res.status(200).json(updatedFlow);
   } catch (error) {
     console.error(error);
     // Differentiate between not found and other server errors
