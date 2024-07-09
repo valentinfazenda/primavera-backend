@@ -48,32 +48,37 @@ async function executeStepLlm(stepId, userId, input = '', socket = null) {
 
 
 async function processContent(tokens, tokenLimit, model, stepData) {
-  const gpt4Enc = encoding_for_model("gpt-4-0125-preview");
-  decodeContent(tokens)
-  let responseString = '';
+  const gpt4Enc = encoding_for_model("gpt-4-0125-preview"); // Load specific encoding for the model.
+
+  // Decode and re-encode the tokens if the length exceeds the token limit.
   while (tokens.length > tokenLimit) {
-      let subMessages = splitIntoSubMessages(tokens, tokenLimit);
-      let results = await Promise.all(subMessages.map(async (subMessage) => {
+      // Split and process each sub-message concurrently.
+      let results = await Promise.all(splitIntoSubMessages(tokens, tokenLimit).map(async subMessage => {
+          // Define the content and message format.
           let subContent = decodeContent(subMessage);
           let messages = [{
               role: "user",
-              content: `${subContent}\n\n\nConsidering the above input the user wants to perform this task, here you have a sub passage of the context used to answer, don't try to answer the question, just rewrite usefulle passages from the input without changing anything at all (the exact same text word for word), only the passages of this subpassage that are useful to answer the user needs ${stepData}, just rewrite usefull passages, respect format and ponctuation, don't add anything else, no blabla. Answer:`
+              content: `${subContent}\n\n\nConsidering the above input the user wants to perform this task, here you have a sub passage of the context used to answer, don't try to answer the question, just rewrite useful passages from the input without changing anything at all (the exact same text word for word), only the passages of this subpassage that are useful to answer the user needs ${stepData}, just rewrite useful passages, respect format and punctuation, don't add anything else, no blabla. Answer:`
           }];
-          
+
+          // Send the message to the appropriate model provider.
           switch (model.provider) {
               case "AzureOpenAI":
-                  return await sendMessageToAzureOpenAI(messages, model);
+                  return sendMessageToAzureOpenAI(messages, model);
               case "OpenAI":
-                  return await sendMessageToOpenAI(null, messages, model);
+                  return sendMessageToOpenAI(null, messages, model);
               default:
                   throw new Error("Model not found");
           }
       }));
 
-      responseString = results.join(" ");
+      // Concatenate responses and encode them back to tokens for further processing if needed.
+      let responseString = results.join(" ");
       tokens = gpt4Enc.encode(responseString);
   }
-  return responseString;
+  
+  // Return the final concatenated response.
+  return decodeContent(tokens);
 }
 
 function splitIntoSubMessages(tokens, tokenLimit) {
