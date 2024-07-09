@@ -3,50 +3,49 @@ import Model from '../../../../.../../models/Model/Model.js';
 import { sendMessageToAzureOpenAI } from '../../../llms/azureOpenAIService/azureOpenAIService.js';
 import { sendMessageToOpenAI } from '../../../llms/openAIService/openAIService.js';
 import { encoding_for_model } from "tiktoken";
-import { decode } from 'jsonwebtoken';
 
 async function executeStepLlm(stepId, userId, input = '', socket = null) {
   try {
-      const gpt4Enc = encoding_for_model("gpt-4-0125-preview");
+    // Fetching step and model details from the database
+    const step = await Step.findById(stepId).orFail(new Error("Step not found"));
+    const model = await Model.findById(step.modelId).orFail(new Error("Model not found"));
+    
+    // Formatting content based on whether there is user input
+    let content = `${input}\n\n\n${input ? `Considering the above input the user wants to perform this task: ${step.data} Answer:` : step.data}`;
+    
+    // Calculating token limits and incrementing model activation count
+    const tokenLimit = model.tokenLength - 4192;
+    model.activation = (model.activation || 0) + 1;
+    await model.save();
 
-      const step = await Step.findById(stepId).orFail(new Error("Step not found"));
-      
-      let Content = `${input}\n\n\n${input ? `Considering the above input the user wants to perform this task: ${step.data} Answer:` : step.data}`;
-      
-      const model = await Model.findById(step.modelId).orFail(new Error("Model not found"));
-
-      const tokenLimit = model.tokenLength - 4192;
-
-      model.activation = (model.activation || 0) + 1;
-      await model.save();
-      
-      const tokenizedContent = gpt4Enc.encode(Content);
-      decodeContent(tokenizedContent).substring(0, 100);
-      if ( tokenizedContent.length >= tokenLimit - 4192 ) {
-        if (socket) {
-          socket.emit('message', { stepId, answer: 'Analyzing context', status: 'loading'});
-        }
-        Content = await processContent(tokenizedContent, tokenLimit, model, step.data);
+    // Encoding content to check against token limits
+    const tokenizedContent = encoding_for_model("gpt-4-0125-preview").encode(content);
+    if (tokenizedContent.length >= tokenLimit - 4192) {
+      // Notifying the client if token limit is exceeded and further processing is needed
+      if (socket) {
+        socket.emit('message', { stepId, answer: 'Analyzing context', status: 'loading'});
       }
+      content = await processContent(tokenizedContent, tokenLimit, model, step.data);
+    }
 
-      let messages = [{
-        role: "user",
-        content: Content
-    }];
-
-      switch (model.provider) {
-          case "AzureOpenAI":
-              return await sendMessageToAzureOpenAI(messages, model, stepId, socket);
-          case "OpenAI":
-              return await sendMessageToOpenAI(userId, messages, model, stepId, socket);
-          default:
-              throw new Error("Model not found");
-      }
+    // Preparing messages for response
+    let messages = [{ role: "user", content }];
+    // Choosing the service provider to send the message based on the model's provider
+    switch (model.provider) {
+        case "AzureOpenAI":
+            return await sendMessageToAzureOpenAI(messages, model, stepId, socket);
+        case "OpenAI":
+            return await sendMessageToOpenAI(userId, messages, model, stepId, socket);
+        default:
+            throw new Error("Provider not supported");
+    }
   } catch (error) {
-      console.error(error);
-      throw error;
+    // Logging and rethrowing the error for upstream handling
+    console.error(error);
+    throw error;
   }
 }
+
 
 async function processContent(tokens, tokenLimit, model, stepData) {
   const gpt4Enc = encoding_for_model("gpt-4-0125-preview");
