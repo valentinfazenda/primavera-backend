@@ -23,7 +23,7 @@ async function executeStepLlm(stepId, userId, input = '', socket = null) {
     if (tokenizedContent.length >= tokenLimit - 4192) {
       // Notifying the client if token limit is exceeded and further processing is needed
       if (socket) {
-        socket.emit('message', { stepId, answer: 'Analyzing context', status: 'loading'});
+        socket.emit('message', { stepId, response: 'Analyzing context', status: 'loading'});
       }
       content = await processContent(tokenizedContent, tokenLimit, model, step.data);
     }
