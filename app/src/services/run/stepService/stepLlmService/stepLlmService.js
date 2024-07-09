@@ -77,15 +77,21 @@ async function processContent(tokens, tokenLimit, model, stepData) {
 }
 
 function splitIntoSubMessages(tokens, tokenLimit) {
-  let subMessages = [];
+  let subMessages = []; // Initialize an array to hold sub-messages
 
+  // Calculate the number of sub-messages needed based on the token limit
   let numberOfMessages = Math.ceil(tokens.length / tokenLimit);
+
+  // Loop through and create sub-messages of specified token limit
   for (let i = 0; i < numberOfMessages; i++) {
+      // Slice the tokens array into smaller chunks based on the current index and token limit
       let subMessage = tokens.slice(i * tokenLimit, (i + 1) * tokenLimit);
-      subMessages.push(subMessage);
+      subMessages.push(subMessage); // Add the sub-message to the array of sub-messages
   }
-  return subMessages;
+
+  return subMessages; // Return the array containing all sub-messages
 }
+
 
 function decodeContent(tokens) {
   const gpt4Enc = encoding_for_model("gpt-4-0125-preview");
