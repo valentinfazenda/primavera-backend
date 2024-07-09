@@ -24,9 +24,6 @@ async function executeStep(runId, stepId, userId, socket = null) {
     if (!step) throw new Error("Step not found");
 
     await updateHistoricalRecord(runId, step._id);
-    console.log("previous steps", step.previousSteps);
-
-    console.log("Ready to execute :", stepId);
     const historicalRecords = await Promise.all(step.previousSteps.map(
       previousStepId => checkHistoricalData(runId, previousStepId)
     ));

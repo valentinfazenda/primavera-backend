@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai';
 
-async function sendMessageToOpenAI(userId, messages, model, stepId, socket) {
+async function sendMessageToOpenAI( messages, model, stepId, socket) {
     const apiKey = model.apiKey;
     
     if (!apiKey) {
