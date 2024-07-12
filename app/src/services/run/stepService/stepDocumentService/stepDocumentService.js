@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Step from '../../../../models/Step/Step.js';
 import Document from '../../../../models/Document/Document.js';
 
@@ -13,9 +12,8 @@ async function executeStepDocument(stepId, userId, input = '') {
     if (!document) {
       throw new Error("Document not found");
     }
-    const documentStr = document.fulltext;
 
-    return documentStr;
+    return `Document name: ${document.name} \n\n Document content:\n ${document.fulltext}`;
 
   } catch (error) {
     console.error(error);
