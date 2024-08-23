@@ -159,7 +159,7 @@ router.delete('/delete', authenticateToken, async (req, res) => {
       const azureEndpoint = await AzureOpenAIEndpoint.findOne({ modelId: model._id });
 
       if (azureEndpoint) {
-        await azureEndpoint.remove(); // Remove the AzureOpenAIEndpoint
+        await azureEndpoint.deleteOne();// Remove the AzureOpenAIEndpoint
       } else {
         // Optionally log that no endpoint was found but expected
         console.log('No AzureOpenAIEndpoint found for this model, none deleted.');
