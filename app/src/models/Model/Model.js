@@ -14,7 +14,7 @@ const modelSchema = new Schema({
     type: Schema.Types.ObjectId, 
     required: true,
   },
-  tokenLength: { type: Number, required: true, default: 0},
+  tokenLength: { type: Number, required: true, default: 128000},
   apiKey: { type: String, required: true },
   activation: { type: Number, required: true, default: 0 },
   active: { type: Boolean, required: false, default: true },
