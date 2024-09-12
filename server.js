@@ -13,6 +13,7 @@ import modelsRoute from './app/src/routes/models/index.js';
 import userRoute from './app/src/routes/user/index.js';
 import authRoute from './app/src/routes/auth.js';
 import waitingListRoute from './app/src/routes/waitingList.js';
+import devRoute from './app/src/routes/dev/index.js';
 import { authenticateToken, authenticateSocket } from './app/src/middlewares/auth.js';
 import 'dotenv/config';
 const app = express();
@@ -53,6 +54,7 @@ app.use('/api/flows/', authenticateToken, flowsRoute);
 app.use('/api/llms/', authenticateToken, llmsRoute);
 app.use('/api/user/', authenticateToken, userRoute);
 app.use('/api/models/', authenticateToken, modelsRoute);
+app.use('/api/dev/', authenticateToken, devRoute);
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
