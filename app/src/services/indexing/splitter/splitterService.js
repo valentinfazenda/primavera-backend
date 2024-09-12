@@ -9,7 +9,7 @@ async function splitDocumentToChunks(documentId = null) {
         const fulltext = await fs.readFile(filePath, 'utf-8'); // Read file as string
         
         // Split the fulltext into chunks
-        const textChunks = splitTextIntoChunks(fulltext);
+        const textChunks = await splitTextIntoChunks(fulltext); // Ensure to await the result if necessary
 
         // Update the document in the database with fulltext and chunks
         console.log('Document processed successfully:', textChunks);
@@ -19,19 +19,20 @@ async function splitDocumentToChunks(documentId = null) {
         console.error('Error in processDocument:', error);
         throw error;
     }
+    return;
 }
 
 // Function to split text into chunks using Langchain's RecursiveCharacterTextSplitter
-function splitTextIntoChunks(text) {
+async function splitTextIntoChunks(text) { // Mark function as async if the splitting is asynchronous
     // Use Langchain's RecursiveCharacterTextSplitter
     console.log('Splitting text into chunks...');
     const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 3000,  // Maximum number of characters per chunk
+        chunkSize: 6000,  // Maximum number of characters per chunk
         chunkOverlap: 200  // Number of characters overlapping between chunks
     });
     console.log('Splitter:', splitter);
 
-    const chunks = splitter.splitText(text);
+    const chunks = splitter.splitText(text); // Await this call if it's asynchronous
     console.log('Chunks:', chunks);
     return chunks;  // Returns an array of chunks
 }
