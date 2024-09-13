@@ -14,7 +14,14 @@ const DocumentSchema = new mongoose.Schema({
     required: true,
     lowercase: true,
     trim: true
-  }
+  },
+  chunks: [{
+    type: String
+  }],
+  embededChunks: [{
+    type: String
+  }]
+  
 });
 
 DocumentSchema.index({ fulltext: 'text' });
