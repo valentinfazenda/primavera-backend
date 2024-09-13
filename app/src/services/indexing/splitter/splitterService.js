@@ -16,7 +16,8 @@ async function splitDocumentToChunks(documentId) {
         const fulltext = doc.fulltext; // Assuming 'fulltext' is the field name in your Document model
         
         // Split the fulltext into chunks
-        const textChunks = await splitTextIntoChunks(fulltext);
+        //const textChunks = await splitTextIntoChunks(fulltext);
+        const textChunks = await splitTextIntoSentences(fulltext);
 
         // Optionally update the document in the database with the chunks
         await Document.findByIdAndUpdate(documentId, { chunks: textChunks });
@@ -41,6 +42,20 @@ async function splitTextIntoChunks(text) { // Mark function as async if the spli
     const chunks = splitter.splitText(text); // Await this call if it's asynchronous
     console.log('Chunks:', chunks);
     return chunks;  // Returns an array of chunks
+}
+
+// Function to split text into sentences
+async function splitTextIntoSentences(text) {
+    console.log('Splitting text into sentences...');
+    
+    // Regular expression to match sentence-ending punctuation: '.', '!', or '?'
+    const sentenceSplitter = /(?<=[.!?])\s+/;
+    
+    // Split the text into an array of sentences
+    const sentences = text.split(sentenceSplitter);
+    
+    console.log('Sentences:', sentences);
+    return sentences;
 }
 
 export {
