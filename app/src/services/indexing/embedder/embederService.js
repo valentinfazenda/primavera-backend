@@ -5,35 +5,30 @@ import path from 'path';
 // Function to embed chunks by calling the Python script
 async function embedChunks(chunks) {
     return new Promise((resolve, reject) => {
-        // Path to the Python script to be called, using path.join for cross-platform compatibility
+        // Path to the Python script to be called
         const pythonScriptPath = path.join('app', 'src', 'services', 'indexing', 'embedder', 'generate_embedings.py');
 
-        // Spawn the Python process and pass the chunks as input
         const pythonProcess = spawn('python', [pythonScriptPath]);
 
         let data = '';
         let errorData = '';
 
-        // Handle the JSON output from the Python script
         pythonProcess.stdout.on('data', (chunk) => {
-            data += chunk.toString(); // Ensure that the chunk is treated as a string
+            data += chunk.toString(); // Collect the data as string
         });
 
-        // Capture errors from the Python process
         pythonProcess.stderr.on('data', (chunk) => {
-            errorData += chunk.toString(); // Ensure that the chunk is treated as a string
+            errorData += chunk.toString(); // Collect errors
         });
 
-        // Handle Python process execution errors
         pythonProcess.on('error', (error) => {
             console.error('Error executing Python script:', error);
             reject(error);
         });
 
-        // Once the process is closed
         pythonProcess.on('close', (code) => {
             if (errorData) {
-                console.error(`Python script error: ${errorData}`);
+                //console.error(`Python script error: ${errorData}`);
             }
             if (code !== 0) {
                 console.error(`Python process exited with code ${code}`);
@@ -41,12 +36,12 @@ async function embedChunks(chunks) {
             }
 
             try {
-                // Parse the embeddings received from Python
-                const embeddedChunks = data// Assume Python script returns JSON
-                resolve(embeddedChunks); // Return the embedded chunks
+                // Parse the embeddings received from Python (assuming JSON)
+                const embeddedChunks = JSON.parse(data);  // Ensure you parse the data
+                resolve(embeddedChunks); // Return the parsed data
             } catch (error) {
                 console.error('Error parsing data from Python script:', error);
-                reject(error); // Reject the promise in case of an error
+                reject(error);
             }
         });
 
@@ -81,13 +76,16 @@ async function embedDocumentChunks(documentId) {
         // Call the embedChunks function to embed the chunks
         const embeddedChunks = await embedChunks(chunks);
 
+        // Parse and convert the embedded chunks to numbers (if necessary)
+        const numericEmbeddings = embeddedChunks.map(chunk => chunk.map(Number));
+
         // Update the document in the database with the generated embeddings
-        await Document.findByIdAndUpdate(documentId, { embeddedChunks });
+        await Document.findByIdAndUpdate(documentId, { embeddedChunks: numericEmbeddings });
 
         console.log(`Embeddings successfully created for document ID: ${documentId}`);
     } catch (error) {
         console.error('Error in embedDocumentChunks:', error);
-        throw error; // Throw the error for further handling
+        throw error;
     }
 }
 

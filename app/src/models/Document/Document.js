@@ -18,9 +18,7 @@ const DocumentSchema = new mongoose.Schema({
   chunks: [{
     type: String
   }],
-  embededChunks: [{
-    type: String
-  }]
+  embeddedChunks: [[Number]]
   
 });
 
