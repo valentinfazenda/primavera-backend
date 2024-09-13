@@ -1,25 +1,31 @@
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { promises as fs } from 'fs'; 
+import Document from '../../../models/Document/Document.js';
 
 // Function to process the document using content from a local file
-async function splitDocumentToChunks(documentId = null) {
+async function splitDocumentToChunks(documentId) {
     try {
-        // Read the content of the file from app\assets\document_to_split.txt
-        const filePath = '.\\app\\assets\\document_to_split.txt';
-        const fulltext = await fs.readFile(filePath, 'utf-8'); // Read file as string
+        if (!documentId) {
+            throw new Error('No document ID provided');
+        }
+
+        // Fetch the document from MongoDB
+        const doc = await Document.findById(documentId);
+        if (!doc) {
+            throw new Error('Document not found');
+        }
+        const fulltext = doc.fulltext; // Assuming 'fulltext' is the field name in your Document model
         
         // Split the fulltext into chunks
-        const textChunks = await splitTextIntoChunks(fulltext); // Ensure to await the result if necessary
+        const textChunks = await splitTextIntoChunks(fulltext);
 
-        // Update the document in the database with fulltext and chunks
+        // Optionally update the document in the database with the chunks
+        await Document.findByIdAndUpdate(documentId, { chunks: textChunks });
         console.log('Document processed successfully:', textChunks);
-        //await Document.findByIdAndUpdate(documentId, { fulltext, chunks: textChunks });
         
     } catch (error) {
         console.error('Error in processDocument:', error);
         throw error;
     }
-    return;
 }
 
 // Function to split text into chunks using Langchain's RecursiveCharacterTextSplitter
