@@ -1,101 +1,65 @@
 import { embedChunks } from '../indexing/embedder/embederService.js';
-import { spawn } from 'child_process';
-import path from 'path';
+import axios from 'axios';
 import Document from '../../models/Document/Document.js';
 
-// Function to calculate similarity using Python script
+// Function to log the time difference between steps
+let previousTime = Date.now();
+
+function logTime(message) {
+    const currentTime = Date.now();
+    console.log(`${message} - Time elapsed: ${currentTime - previousTime} ms`);
+    previousTime = currentTime; // Update the previous time
+}
+
+// Function to calculate similarity by calling the /calculate_similarity API
 async function calculateSimilarity(phraseEmbedding, embeddedChunks) {
-    return new Promise((resolve, reject) => {
-        const pythonScriptPath = path.join('app', 'src', 'services', 'search', 'calculate_similarity.py');
-        const pythonProcess = spawn('python', [pythonScriptPath]);
-
-        let data = '';
-        let errorData = '';
-
-        // Handle the JSON output from the Python script
-        pythonProcess.stdout.on('data', (chunk) => {
-            data += chunk.toString();
+    try {
+        const response = await axios.post('http://localhost:4200/calculate_similarity', {
+            phraseEmbedding: phraseEmbedding,
+            embeddedChunks: embeddedChunks
         });
 
-        // Capture errors from the Python process
-        pythonProcess.stderr.on('data', (chunk) => {
-            errorData += chunk.toString();
-        });
-
-        // Handle errors from the Python process
-        pythonProcess.on('error', (error) => {
-            console.error('Error executing Python script:', error);
-            reject(error);
-        });
-
-        // Once the process is closed
-        pythonProcess.on('close', (code) => {
-            if (errorData) {
-                //console.error(`Python script error: ${errorData}`);
-            }
-            if (code !== 0) {
-                console.error(`Python process exited with code ${code}`);
-                return reject(new Error(`Python process exited with code ${code}`));
-            }
-
-            try {
-                const bestMatch = data;
-                resolve(bestMatch); // Return the best match found by the Python script
-            } catch (error) {
-                console.error('Error parsing data from Python script:', error);
-                reject(error);
-            }
-        });
-
-        // Send the embeddings to the Python script via stdin
-        const payload = JSON.stringify({
-            phraseEmbedding,
-            embeddedChunks
-        });
-
-        pythonProcess.stdin.write(payload, (err) => {
-            if (err) {
-                console.error('Error writing data to stdin:', err);
-                reject(err);
-            } else {
-                pythonProcess.stdin.end(); // Close stdin after writing
-            }
-        });
-    });
+        // Return the best match found by the API
+        return response.data;
+    } catch (error) {
+        console.error('Error calling /calculate_similarity endpoint:', error.response ? error.response.data : error.message);
+        throw error;
+    }
 }
 
 // Service to search for the embedding of a given phrase
 async function searchService(phrase) {
     try {
-        // Validate the input
-        if (!phrase || typeof phrase !== 'string') {
-            throw new Error('Invalid input: a valid phrase is required');
-        }
+        logTime('Start process');
 
-        // Step 1: Embed the phrase
-        const phraseEmbedding = await embedChunks(phrase);
-
-        // Step 2: Retrieve all documents with embedded chunks from MongoDB
-        const documents = await Document.find({}, { embeddedChunks: 1, name: 1 });
+        // Exécuter les deux opérations en parallèle
+        logTime('Generate embeddings and retrieve documents in parallel');
+        const [phraseEmbedding, documents] = await Promise.all([
+            embedChunks([phrase]),
+            Document.find({}, { embeddedChunks: 1, name: 1 })
+        ]);
+        logTime('Embeddings generated and documents retrieved');
 
         if (!documents || documents.length === 0) {
             throw new Error('No documents found with embedded chunks');
         }
 
         // Step 3: For each document, retrieve embeddedChunks and store them in a single array
+        logTime('Retrieve all embedded chunks');
         let allEmbeddedChunks = [];
         documents.forEach(doc => {
             allEmbeddedChunks = allEmbeddedChunks.concat(doc.embeddedChunks);
         });
+        logTime('All embedded chunks retrieved');
 
-        // Step 4: Call Python script to find the most similar chunk
+        // Step 4: Call the API to find the most similar chunk
+        logTime('Start search');
         const mostSimilarChunk = await calculateSimilarity(phraseEmbedding, allEmbeddedChunks);
-
+        logTime('Search done');
 
         // Step 5: Find the document that contains the most similar chunk
         let matchingDocument = null;
-
-        const parsedMostSimilarChunk = JSON.parse(mostSimilarChunk);
+        const parsedMostSimilarChunk = mostSimilarChunk;
 
         for (const document of documents) {
             if (document.embeddedChunks.some(chunk => arraysEqual(chunk, parsedMostSimilarChunk.chunk))) {
@@ -117,6 +81,7 @@ async function searchService(phrase) {
     }
 }
 
+// Function to compare two arrays (helper function)
 function arraysEqual(arr1, arr2) {
     if (arr1.length !== arr2.length) {
         return false;
