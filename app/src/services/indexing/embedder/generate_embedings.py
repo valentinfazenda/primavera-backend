@@ -3,7 +3,6 @@ import sys
 import json
 
 def embed_sentences(sentences):
-    # Load a lightweight and efficient model
     model = SentenceTransformer('all-MiniLM-L6-v2')
     embeddings = model.encode(sentences)
     return embeddings

@@ -1,4 +1,4 @@
-import executeFlow from './app/src/services/run/flowService/flowService.js';
+//import executeFlow from './app/src/services/run/flowService/flowService.js';
 
 function handleConnection(socket) {
     socket.on('message', async (msg) => {
@@ -7,7 +7,8 @@ function handleConnection(socket) {
             console.log('message received:')
             if (msg.flowId) {
                 console.log('flowId:', msg.flowId)
-                const messageContent = await executeFlow(msg.flowId, socket.user.id, socket);
+                // const messageContent = await executeFlow(msg.flowId, socket.user.id, socket);
+                const messageContent = "test"
                 console.log(messageContent);
                 socket.emit('message', '{"status": "success"}');
             } else {
