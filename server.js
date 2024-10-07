@@ -7,8 +7,6 @@ import connectDB from './app/src/config/db.js';
 import bodyParser from 'body-parser';
 import llmsRoute from './app/src/routes/llms/index.js';
 import documentsRoute from './app/src/routes/documents/index.js';
-import linksRoute from './app/src/routes/links/index.js';
-import flowsRoute from './app/src/routes/flows/index.js';
 import modelsRoute from './app/src/routes/models/index.js';
 import userRoute from './app/src/routes/user/index.js';
 import authRoute from './app/src/routes/auth.js';
@@ -49,8 +47,6 @@ app.use('/api/waitingList', waitingListRoute);
 
 // Protected routes
 app.use('/api/documents/', authenticateToken, documentsRoute);
-app.use('/api/links/', authenticateToken, linksRoute);
-app.use('/api/flows/', authenticateToken, flowsRoute);
 app.use('/api/llms/', authenticateToken, llmsRoute);
 app.use('/api/user/', authenticateToken, userRoute);
 app.use('/api/models/', authenticateToken, modelsRoute);

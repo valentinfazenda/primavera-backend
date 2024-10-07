@@ -6,7 +6,7 @@ import { embedDocumentChunks } from '../../services/indexing/embedder/embederSer
 import { searchService } from '../../services/search/searchService.js';
 
 router.post('/split', authenticateToken, async (req, res) => {
-        splitDocumentToChunks("66e32a741d1b03dafa978b10");
+        splitDocumentToChunks("66601b5ab65917d969a4017f");
         res.status(200).json({ message: 'Document split successfully' });
 });
 

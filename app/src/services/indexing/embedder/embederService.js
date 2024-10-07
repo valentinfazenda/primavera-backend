@@ -89,7 +89,49 @@ async function embedDocumentChunks(documentId) {
     }
 }
 
+// Function to embed document chunks
+async function embedAllDocumentsChunks() {
+    try {
+        // Retrieve all documents from the database
+        const documents = await Document.find({});
+
+        if (!documents || documents.length === 0) {
+            throw new Error('No documents found');
+        }
+
+        // Create an array of promises for embedding document chunks in parallel
+        const embeddingPromises = documents.map(async (document) => {
+            // Check if the 'chunks' field exists and contains data
+            const { chunks } = document;
+            if (!chunks || chunks.length === 0) {
+                console.warn(`No chunks found for document ID: ${document._id}`);
+                return null; // Skip processing for this document
+            }
+
+            // Call the embedChunks function to embed the chunks
+            const embeddedChunks = await embedChunks(chunks);
+
+            // Parse and convert the embedded chunks to numbers (if necessary)
+            const numericEmbeddings = embeddedChunks.map(chunk => chunk.map(Number));
+
+            // Update the document in the database with the generated embeddings
+            await Document.findByIdAndUpdate(document._id, { embeddedChunks: numericEmbeddings });
+
+            console.log(`Embeddings successfully created for document ID: ${document._id}`);
+        });
+
+        // Wait for all embedding tasks to complete
+        await Promise.all(embeddingPromises);
+
+        console.log('All documents processed for embeddings.');
+    } catch (error) {
+        console.error('Error in embedAllDocumentChunks:', error);
+        throw error;
+    }
+}
+
 export {
     embedDocumentChunks,
+    embedAllDocumentsChunks,
     embedChunks
 };
