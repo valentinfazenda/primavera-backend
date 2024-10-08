@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 
 const WorkspaceSchema = new Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    name: { type: String, required: true },
     creationDate: { type: Date, required: true, default: Date.now },
 });
 

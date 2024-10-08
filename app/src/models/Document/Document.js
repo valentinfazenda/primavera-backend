@@ -1,6 +1,12 @@
+import Workspace from '../Workspace/Workspace.js';
 import mongoose from 'mongoose';
 
 const DocumentSchema = new mongoose.Schema({
+
+  workspaceId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Workspace', 
+    required: true },
   name: {
     type: String,
     required: true
@@ -15,10 +21,11 @@ const DocumentSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
-  chunks: [{
-    type: String
-  }],
-  embeddedChunks: [[Number]]
+  creationDate: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
   
 });
 
