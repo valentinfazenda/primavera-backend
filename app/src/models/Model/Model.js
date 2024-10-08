@@ -1,23 +1,20 @@
 import mongoose from 'mongoose';
+import Company from '../Company/Company.js';
+
 const { Schema } = mongoose;
 
 const modelSchema = new Schema({
   name: { type: String, required: true },
-  provider: { type: String, required: false },
-  ownerType: { 
-    type: String, 
-    required: true, 
-    enum: ['company', 'user'] 
-  },
   provider:"string",
-  ownerId: { 
+  companyId: { 
     type: Schema.Types.ObjectId, 
     required: true,
+    ref: 'Company'
   },
-  tokenLength: { type: Number, required: true, default: 128000},
+  azureOpenAIDeploymentName: { type: String, required: true },
+  modelDeploymentName: { type: String, required: true },
   apiKey: { type: String, required: true },
-  activation: { type: Number, required: true, default: 0 },
-  active: { type: Boolean, required: false, default: true },
+  tokenLength: { type: Number, required: true, default: 128000},
 });
 
 const Model = mongoose.model('Model', modelSchema);
