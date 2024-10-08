@@ -49,43 +49,4 @@ router.get('/details', authenticateToken, async (req, res) => {
     }
 });
 
-// Create a new user
-router.post('/add', authenticateToken, async (req, res) => {
-    const { firstName, lastName, email, password, profilePicture, companyId } = req.body;
-
-    // Validate that all required fields are present
-    if (!firstName || !lastName || !email || !password) {
-        return res.status(400).json({ error: "All required fields (firstName, lastName, email, password) must be provided" });
-    }
-
-    try {
-        // Check if a user with the same email already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ error: "Email already in use" });
-        }
-
-        // Hash the password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Create a new user object
-        const newUser = new User({
-            firstName,
-            lastName,
-            email,
-            password: hashedPassword,
-            profilePicture,
-            companyId,
-        });
-
-        // Save the new user to the database
-        const savedUser = await newUser.save();
-        res.status(201).json({ message: "User created successfully", user: savedUser });
-    } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: "Server error" });
-    }
-});
-
 export default router;
