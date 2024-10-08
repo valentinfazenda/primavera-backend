@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import User from '../User/User.js';
+import Workspace from '../Workspace/Workspace.js';
 const { Schema } = mongoose;
 
-const WorkspaceSchema = new Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+const ChatSchema = new Schema({
+    workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', required: true },
     creationDate: { type: Date, required: true, default: Date.now },
 });
 
-const Workspace = mongoose.model('Workspace', WorkspaceSchema);
+const Chat = mongoose.model('Chat', ChatSchema);
 
-export default Workspace;
+export default Chat;
