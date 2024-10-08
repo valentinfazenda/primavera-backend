@@ -9,7 +9,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Find a document by its ID
-router.post('/find', authenticateToken, async (req, res) => {
+router.post('/details', authenticateToken, async (req, res) => {
     const documentId = req.body.id;
     try {
         const document = await Document.findById(documentId);

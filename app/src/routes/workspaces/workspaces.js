@@ -15,7 +15,7 @@ router.get('/list', authenticateToken, async (req, res) => {
     }
 });
 
-router.post('/find', authenticateToken, async (req, res) => {
+router.post('/details', authenticateToken, async (req, res) => {
     const { id } = req.body;
 
     try {
