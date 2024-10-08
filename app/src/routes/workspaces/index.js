@@ -1,8 +1,8 @@
 import express from 'express';
 const router = express.Router();
 
-import documentsRouter from './documents.js';
+import workspacesRouter from './documents.js';
 
-router.use('', documentsRouter);
+router.use('', workspacesRouter);
 
-export default documentsRouter;
+export default workspacesRouter;
