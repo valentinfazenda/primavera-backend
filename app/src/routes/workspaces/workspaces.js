@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { authenticateToken } from '../../middlewares/auth.js';
-import Workspace from '../../models/Workspace/Worspace.js';
+import Workspace from '../../models/Workspace/Workspace.js';
 
 
 router.get('/list', authenticateToken, async (req, res) => {
