@@ -11,6 +11,9 @@ import modelsRoute from './app/src/routes/models/index.js';
 import userRoute from './app/src/routes/user/index.js';
 import authRoute from './app/src/routes/auth.js';
 import waitingListRoute from './app/src/routes/waitingList.js';
+import workspaceRoute from './app/src/routes/workspaces/index.js';
+import companyRoute from './app/src/routes/company/index.js';
+import chatRoute from './app/src/routes/chat/index.js';
 import devRoute from './app/src/routes/dev/index.js';
 import { authenticateToken, authenticateSocket } from './app/src/middlewares/auth.js';
 import 'dotenv/config';
@@ -51,6 +54,9 @@ app.use('/api/llms/', authenticateToken, llmsRoute);
 app.use('/api/user/', authenticateToken, userRoute);
 app.use('/api/models/', authenticateToken, modelsRoute);
 app.use('/api/dev/', authenticateToken, devRoute);
+app.use('/api/workspace/', authenticateToken, workspaceRoute);
+app.use('/api/company/', authenticateToken, companyRoute);
+app.use('/api/chat/', authenticateToken, chatRoute);
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

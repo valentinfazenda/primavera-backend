@@ -1,12 +1,12 @@
-;import AzureOpenAIEndpoint from '../../../models/AzureOpenAIEndpoint/AzureOpenAIEndpoint.js';
+;import Model from '../../../models/Model/Model.js';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
 
 async function sendMessageToAzureOpenAI( messages, model,  stepId, socket) {
 
-    const azureOpenAIEndpoint = await AzureOpenAIEndpoint.findOne({ modelId: model._id }).orFail(new Error("AzureOpenAIEndpoint not found"));
+    const ModelLlm = await Model.findOne({ modelId: model._id }).orFail(new Error("Model not found"));
     const apiKey = model.apiKey;
 
-    const { azureOpenAIDeploymentName, modelDeploymentName } = azureOpenAIEndpoint;
+    const { azureOpenAIDeploymentName, modelDeploymentName } = ModelLlm;
     if (!azureOpenAIDeploymentName || !apiKey) {
         throw new Error("Deployment name or API key details not found");
     }
