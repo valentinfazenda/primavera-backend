@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-import workspacesRouter from './documents.js';
+import workspacesRouter from './workspaces.js';
 
 router.use('', workspacesRouter);
 
