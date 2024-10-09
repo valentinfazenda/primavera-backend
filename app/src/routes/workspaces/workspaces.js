@@ -59,7 +59,7 @@ router.delete('/delete', authenticateToken, async (req, res) => {
     }
 });
 
-router.post('/add', authenticateToken, async (req, res) => {
+router.post('/create', authenticateToken, async (req, res) => {
     const { name } = req.body;
 
     try {
