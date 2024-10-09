@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai';
 
-async function sendMessageToOpenAI( messages, model, stepId, socket) {
+async function sendMessageToOpenAI( messages, model, socket) {
     const apiKey = model.apiKey;
     
     if (!apiKey) {
@@ -25,11 +25,11 @@ async function sendMessageToOpenAI( messages, model, stepId, socket) {
         const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
         response += content;
         if (socket && content) {
-            socket.emit('message', { stepId, response, status: 'loading'});
+            socket.emit('message', { response, status: 'loading'});
         }
     }
     if (socket && response) {
-        socket.emit('message', { stepId, response, status: 'done'});
+        socket.emit('message', { response, status: 'done'});
     }
     
     return response;

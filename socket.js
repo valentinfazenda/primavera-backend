@@ -1,14 +1,13 @@
-//import executeFlow from './app/src/services/run/flowService/flowService.js';
+import { executeMessage } from "./app/src/services/chat/chatService.js";
 
 function handleConnection(socket) {
     socket.on('message', async (msg) => {
         try {
             socket.emit('authenticated', { status: 'success' });
             console.log('message received:')
-            if (msg.flowId) {
-                console.log('flowId:', msg.flowId)
-                // const messageContent = await executeFlow(msg.flowId, socket.user.id, socket);
-                const messageContent = "test"
+            if (msg.chatId && msg.message) {
+                console.log('chatId:', msg.chatId)
+                const messageContent = await executeMessage(msg.chatId, socket.user.id, socket);
                 console.log(messageContent);
                 socket.emit('message', '{"status": "success"}');
             } else {
