@@ -3,14 +3,14 @@ import path from 'path';  // For resolving file paths
 import axios from 'axios';  // Assumed HTTP client for making requests to an external service
 import { sendMessageToAzureOpenAI } from '../../llms/azureOpenAIService/azureOpenAIService.js';
 
-async function generateQueries(message, model, socket) {
+async function queryGeneratorService(message, model) {
     try {
         // Load the query template from a file
         const templatePath = path.resolve(__dirname, 'generateQuery.txt');  // Adjust the file path as necessary
         let template = await fs.readFile(templatePath, 'utf8');
 
         // Replace placeholders in the template with the actual message
-        const query = template.replace(/{{message}}/g, message);
+        const query = template.replace(/{{\$message}}/g, message);
 
         // Send the processed query to the llm service
         const response = await sendMessageToAzureOpenAI(query, model);
@@ -24,5 +24,5 @@ async function generateQueries(message, model, socket) {
 }
 
 export {
-    generateQueries  // Make sure to export to use in other parts of your application
+    queryGeneratorService  // Make sure to export to use in other parts of your application
 };

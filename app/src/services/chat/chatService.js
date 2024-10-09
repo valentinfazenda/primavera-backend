@@ -1,6 +1,9 @@
 import Chat from '../../models/Chat/Chat.js';
 import Message from '../../models/Message/Message.js';
 import Workspace from '../../models/Workspace/Workspace.js';
+import { messageGenerationService } from '../generationService/messageService/messageService.js';
+import { queryGeneratorService } from '../search/queryGeneratorService/queryGeneratorService.js';
+import { searchService } from '../search/searchService.js';
 
 async function executeMessage(chatId, userId, socket) {
     try {
@@ -24,9 +27,11 @@ async function executeMessage(chatId, userId, socket) {
         }
 
         // Generate queries based on the message received through the socket
-        const queries = await queryService(socket.message);
+        const queries = await queryGeneratorService(socket.message);
         // Execute the search with the generated queries
-        const response = await searchService(queries);
+        const chunks = await searchService(queries);
+        // Generate a response from the search results
+        const response = await messageGenerationService(chunks, socket.message, socket);
 
         // Create new message for the agent's response
         const agentMessage = new Message({
