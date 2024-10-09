@@ -1,13 +1,15 @@
 import mongoose from 'mongoose';
-import Chat from '../Chat/Chat.js';
-import text from 'body-parser/lib/types/text.js';
-import { embedAllDocumentsChunks } from '../../services/indexing/embedder/embederService.js';
+import Document from '../Document/Document.js';
 const { Schema } = mongoose;
 
 const ChunkSchema = new Schema({
-    chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat', required: true },
+    documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true },
     text: { type: String, required: true },
-    embeddedText: { type: String, required: true },
+    chunkNumber: { type: Number, required: true },
+    chunks: {
+        type: String
+      },
+    embeddedChunks: [Number],
     creationDate: { type: Date, required: true, default: Date.now },
 });
 
