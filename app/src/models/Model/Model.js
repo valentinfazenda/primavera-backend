@@ -6,6 +6,7 @@ const { Schema } = mongoose;
 const modelSchema = new Schema({
   name: { type: String, required: true },
   provider:"string",
+  apiVersion: { type: String, required: false },
   companyId: { 
     type: Schema.Types.ObjectId, 
     required: true,
