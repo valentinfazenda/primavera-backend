@@ -1,7 +1,7 @@
 ;import Model from '../../../models/Model/Model.js';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
 
-async function sendMessageToAzureOpenAI( messages, model,  stepId, socket) {
+async function sendMessageToAzureOpenAI( messages, model, socket) {
 
     const ModelLlm = await Model.findOne({ modelId: model._id }).orFail(new Error("Model not found"));
     const apiKey = model.apiKey;
@@ -22,11 +22,11 @@ async function sendMessageToAzureOpenAI( messages, model,  stepId, socket) {
         const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
         response += content;
         if (socket && content) {
-            socket.emit('message', { stepId, response, status: 'loading'});
+            socket.emit('message', { response, status: 'loading'});
         }
     }
     if (socket && response) {
-        socket.emit('message', { stepId, response, status: 'done'});
+        socket.emit('message', { response, status: 'done'});
     }
     
     return response;

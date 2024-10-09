@@ -44,7 +44,11 @@ async function processDocument(documentId, buffer, extension) {
             console.log("Unsupported file format");
             return;
     }
-    await Document.findByIdAndUpdate(documentId, { fulltext });
+    await Document.findByIdAndUpdate(documentId, { fulltext })
+    // create chunks from the fulltext, 
+    // embed every chunks in an embeddedChunks object,
+    // save the chunks,  embeddedChunks, chunkNumber (first chunk of the document is 0, second chunk is 1 etc.), and documentId to the chunks database  
+    ;
 }
 
 export {
