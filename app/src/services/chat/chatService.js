@@ -5,7 +5,7 @@ import { messageGenerationService } from '../generationService/messageService/me
 import { queryGeneratorService } from '../search/queryGeneratorService/queryGeneratorService.js';
 import { searchService } from '../search/searchService.js';
 
-async function executeMessage(chatId, userId, socket) {
+async function executeMessage(message, chatId, userId, socket) {
     try {
         // Find the chat by its ID
         const chat = await Chat.findById(chatId);
@@ -16,7 +16,7 @@ async function executeMessage(chatId, userId, socket) {
         // Create new message for the user's message
         const userMessage = new Message({
             chatId: chat._id,  // Reference to the chat document
-            text: socket.message,  // Text from the socket message
+            text: message,  // Text from the socket message
         });
         await userMessage.save();  // Save the user message to the database
 
@@ -26,21 +26,25 @@ async function executeMessage(chatId, userId, socket) {
             throw new Error('Unauthorized access');
         }
 
+        const chatHistory = await Message.find({ chatId: chat._id }).sort({ creationDate: 1 });
+
         // Generate queries based on the message received through the socket
-        const queries = await queryGeneratorService(socket.message);
+        const modelId = chat.modelId;
+        const queries = await queryGeneratorService(message, modelId, chatHistory);
         // Execute the search with the generated queries
-        const chunks = await searchService(queries);
+        // const chunks = await searchService(queries); TO BE DONE
         // Generate a response from the search results
-        const response = await messageGenerationService(chunks, socket.message, socket);
+        // const response = await messageGenerationService(chunks, message, socket); TO BE DONE
 
         // Create new message for the agent's response
-        const agentMessage = new Message({
-            chatId: chat._id,  // Reference to the chat document
-            text: response,  // Response text from the service
-        });
-        await agentMessage.save();  // Save the agent message to the database
+        // const agentMessage = new Message({
+        //     chatId: chat._id,  // Reference to the chat document
+        //     text: response,  // Response text from the service
+        // });
+        // await agentMessage.save();  // Save the agent message to the database
 
         // Return the search service response
+        return queries;
         return response;
     } catch (error) {
         // Log and rethrow any errors encountered during the function execution

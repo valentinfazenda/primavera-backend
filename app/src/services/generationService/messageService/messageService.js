@@ -1,8 +1,9 @@
 import fs from 'fs/promises';  // Promise-based file system interaction
 import path from 'path';  // For resolving file paths
-import axios from 'axios';  // Assumed HTTP client for making requests
+import Chat from '../../../models/Chat/Chat.js';
+import { sendMessageToAzureOpenAI } from '../../llms/azureOpenAIService/azureOpenAIService.js';
 
-async function messageGenerationService(context, socket) {
+async function messageGenerationService(context, chatId, socket) {
     try {
         // Define the path to the prompt file
         const filePath = path.resolve(__dirname, '../../prompts/generateAnswerMessage.txt');
@@ -11,13 +12,15 @@ async function messageGenerationService(context, socket) {
         let template = await fs.readFile(filePath, 'utf8');
 
         // Replace the placeholder with the actual context
-        const customizedMessage = template.replace(/{{\$context}}/g, context);
+        const customizedMessage = template.replace(/{{\$context}}/g, context.documents).replace(/{{\$query}}/g, context.query);
 
-        // Assuming the LLM service needs a model identifier, define it
-        const model = 'model-name';  // Replace 'model-name' with your actual model identifier
+        // Find the chat
+        const chat = await Chat.findById(chatId);
+        if (!chat) throw new Error('Chat not found');
+        const model = chat.modelId;
 
         // Send the processed text to the llmService
-        const response = await sendMessageToAzureOpenAI(query, model);
+        const response = await sendMessageToAzureOpenAI(customizedMessage, model, socket);
 
         // Return the response, assuming it's a string
         return response;
