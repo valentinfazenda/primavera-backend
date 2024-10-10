@@ -35,7 +35,7 @@ async function sendMessageToAzureOpenAI(messages, model, socket) {
     const completions = await client.chat.completions.create({
         messages: messagesArray,
         model: model.modelDeploymentName, 
-        max_tokens: 400 
+        max_tokens: 16000, 
     });
     response = completions.choices[0].message.content
 
