@@ -1,6 +1,7 @@
 import { embedChunks } from '../indexing/embedder/embederService.js';
 import axios from 'axios';
 import Document from '../../models/Document/Document.js';
+import Chunk from '../../models/Chunk/Chunk.js';
 
 // Function to log the time difference between steps
 let previousTime = Date.now();
@@ -34,66 +35,33 @@ async function searchService(phrase) {
 
         // Exécuter les deux opérations en parallèle
         logTime('Generate embeddings and retrieve documents in parallel');
-        const [phraseEmbedding, documents] = await Promise.all([
+        const [phraseEmbedded, chunks] = await Promise.all([
             embedChunks([phrase]),
-            Document.find({}, { embeddedChunks: 1, name: 1 })
+            Chunk.findAll({}, { embeddedChunks: 1, name: 1 })
         ]);
-        logTime('Embeddings generated and documents retrieved');
+        logTime('Embeddings generated and chunks retrieved');
 
-        if (!documents || documents.length === 0) {
-            throw new Error('No documents found with embedded chunks');
+        if (!chunks || chunks.length === 0) {
+            throw new Error('No embeded chunks found');
         }
 
-        // Step 3: For each document, retrieve embeddedChunks and store them in a single array
-        logTime('Retrieve all embedded chunks');
-        let allEmbeddedChunks = [];
-        documents.forEach(doc => {
-            allEmbeddedChunks = allEmbeddedChunks.concat(doc.embeddedChunks);
-        });
-        logTime('All embedded chunks retrieved');
+        // Step 3: store all chunks in a single array (each chunks is an array of numbers)
+        const chunksArray = documents.flatMap(chunks => chunks.embeddedChunks);
 
         // Step 4: Call the API to find the most similar chunk
         logTime('Start search');
-        const mostSimilarChunk = await calculateSimilarity(phraseEmbedding, allEmbeddedChunks);
+        const mostSimilarChunks = await calculateSimilarity(phraseEmbedding, chunksArray); // return an array of chunks of lenght i
         logTime('Search done');
 
-        // Step 5: Find the document that contains the most similar chunk
-        let matchingDocument = null;
-        const parsedMostSimilarChunk = mostSimilarChunk;
+        // Step 5: Find in the chunks tables chunks where embeddedChunk=chunks for the i chunks returned get chunk.text and chunk.documentId
 
-        for (const document of documents) {
-            if (document.embeddedChunks.some(chunk => arraysEqual(chunk, parsedMostSimilarChunk.chunk))) {
-                matchingDocument = document;
-                break;
-            }
-        }
-
-        if (!matchingDocument) {
-            throw new Error('No matching document found for the most similar chunk.');
-        }
-
-        // Return the name of the document that contains the most similar chunk
+        // Return an array object containings chunks as a couple of chunk and documentId
         return matchingDocument.name;
 
     } catch (error) {
         console.error('Error in searchService:', error);
         throw error;
     }
-}
-
-// Function to compare two arrays (helper function)
-function arraysEqual(arr1, arr2) {
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 export {

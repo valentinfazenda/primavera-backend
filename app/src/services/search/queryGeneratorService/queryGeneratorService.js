@@ -5,10 +5,10 @@ import Model from '../../../models/Model/Model.js';
 async function queryGeneratorService(message, modelId, chatHistory) {
     try {
         // Directly specify the absolute path to the template
-        const templatePath = 'C:\\Users\\Valentin.FAZENDA\\OneDrive - Sinequa\\Documents\\GitHub\\primavera-backend\\app\\src\\prompts\\generateQuery.txt';
+        const filePath = 'C:\\Users\\Valentin.FAZENDA\\OneDrive - Sinequa\\Documents\\GitHub\\primavera-backend\\app\\src\\prompts\\generateQuery.txt';
 
         // Load the query template from a file
-        let template = await fs.readFile(templatePath, 'utf8');
+        let template = await fs.readFile(filePath, 'utf8');
 
         // Replace placeholders in the template with the actual message and chat history
         const messagePrompt = template.replaceAll(/{{\$message}}/g, message).replaceAll(/{{\$chatHistory}}/g, chatHistory);

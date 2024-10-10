@@ -42,18 +42,22 @@ async function executeMessage(message, chatId, userId, socket) {
         //     }
         // }
 
+
         // Generate a response from the search results
-        //const response = await messageGenerationService(chunks, message, socket);
+        const context = {
+            chunks: chunks,
+            query: message
+        };
+        const response = await messageGenerationService(context, modelId, chatId, socket);
 
         // Create new message for the agent's response
-        // const agentMessage = new Message({
-        //     chatId: chat._id,  // Reference to the chat document
-        //     text: response,  // Response text from the service
-        // });
-        // await agentMessage.save();  // Save the agent message to the database
+        const agentMessage = new Message({
+            chatId: chat._id,  // Reference to the chat document
+             text: response,  // Response text from the service
+         });
+        await agentMessage.save();
 
         // Return the search service response
-        return queries;
         return response;
     } catch (error) {
         // Log and rethrow any errors encountered during the function execution
