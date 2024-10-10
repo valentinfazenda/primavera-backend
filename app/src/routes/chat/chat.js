@@ -4,9 +4,12 @@ import { authenticateToken } from '../../middlewares/auth.js';
 import Chat from '../../models/Chat/Chat.js';
 import Workspace from '../../models/Workspace/Workspace.js';
 import Message from '../../models/Message/Message.js';
+import User from '../../models/User/User.js';
+import Company from '../../models/Company/Company.js';
+import Model from '../../models/Model/Model.js';
 
 // Endpoint to add a new chat
-router.post('/add', authenticateToken, async (req, res) => {
+router.post('/create', authenticateToken, async (req, res) => {
     const { workspaceId } = req.body;
 
     try {
@@ -21,9 +24,22 @@ router.post('/add', authenticateToken, async (req, res) => {
             return res.status(403).json({ error: "Unauthorized access to this workspace" });
         }
 
+        // Find the user using workspace.userId
+        const user = await User.findById(workspace.userId);
+        if (!user) throw new Error('User not found');
+
+        // Find the company using user.companyId
+        const company = await Company.findById(user.companyId);
+        if (!company) throw new Error('Company not found');
+
+        // Find the model using company.id
+        const model = await Model.findOne({ companyId: company._id });
+        if (!model) throw new Error('Model not found');
+
         // Create a new chat associated with the workspace
         const newChat = new Chat({
-            workspaceId
+            workspaceId,
+            modelId: model._id
         });
 
         const savedChat = await newChat.save();

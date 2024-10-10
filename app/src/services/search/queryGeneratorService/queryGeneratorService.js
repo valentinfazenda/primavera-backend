@@ -1,18 +1,21 @@
 import fs from 'fs/promises';  // Use the Promise-based version of the fs module
-import path from 'path';  // For resolving file paths
-import axios from 'axios';  // Assumed HTTP client for making requests to an external service
 import { sendMessageToAzureOpenAI } from '../../llms/azureOpenAIService/azureOpenAIService.js';
+import Model from '../../../models/Model/Model.js';
 
-async function queryGeneratorService(message, model) {
+async function queryGeneratorService(message, modelId, chatHistory) {
     try {
+        // Directly specify the absolute path to the template
+        const templatePath = 'C:\\Users\\Valentin.FAZENDA\\OneDrive - Sinequa\\Documents\\GitHub\\primavera-backend\\app\\src\\prompts\\generateQuery.txt';
+
         // Load the query template from a file
-        const templatePath = path.resolve(__dirname, 'generateQuery.txt');  // Adjust the file path as necessary
         let template = await fs.readFile(templatePath, 'utf8');
 
-        // Replace placeholders in the template with the actual message
-        const query = template.replace(/{{\$message}}/g, message);
+        // Replace placeholders in the template with the actual message and chat history
+        const query = template.replace(/{{\$message}}/g, message).replace(/{{\$chatHistory}}/g, chatHistory);
 
         // Send the processed query to the llm service
+        const model = await Model.findById(modelId).orFail(new Error("Model not found"));
+        
         const response = await sendMessageToAzureOpenAI(query, model);
 
         // Return the answer as an array of strings
