@@ -11,12 +11,12 @@ async function queryGeneratorService(message, modelId, chatHistory) {
         let template = await fs.readFile(templatePath, 'utf8');
 
         // Replace placeholders in the template with the actual message and chat history
-        const query = template.replace(/{{\$message}}/g, message).replace(/{{\$chatHistory}}/g, chatHistory);
+        const messagePrompt = template.replaceAll(/{{\$message}}/g, message).replaceAll(/{{\$chatHistory}}/g, chatHistory);
 
         // Send the processed query to the llm service
         const model = await Model.findById(modelId).orFail(new Error("Model not found"));
         
-        const response = await sendMessageToAzureOpenAI(query, model);
+        const response = (await sendMessageToAzureOpenAI(messagePrompt, model)).replaceAll('```', '').replace('json','').replaceAll('\n','').replaceAll(/\\/g,'');
 
         // Return the answer as an array of strings
         return response;  // Assuming the llmService returns data in the correct format

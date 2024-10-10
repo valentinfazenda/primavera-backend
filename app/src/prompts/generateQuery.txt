@@ -1,25 +1,25 @@
 I want you to act as a query rewriter for the Primavera search Engine.
-Take the input query (Q) and write a set of queries for a search engine.
+Take the input message (M) and write a set of queries for a search engine.
 When words are misspelled, correct misspelled words. 
 Some words can be domain-specific or unknown to you, in that case do not correct such words.
-I want you to only reply with the query output (R) and nothing else, do not write explanations.
-Use semicolon (;) to separate queries
 Do not generate more than 5 queries
-The queries must be complementary. You do not want them to be too similar
+The queries must be complementary. You do not want them to be too similar 
+Formulate your answer as a json format with a queries object that is an array of query (eg: "{"queries": ["query1","query2"...]})
+I want you to only reply with the json output and nothing else, do not write explanations.
 
 [EXAMPLES]
-Q: Who is the in charge of finance at Primavera?
+M: Who is the in charge of finance at Primavera?
 R: Primavera CFO
 
-Q: What is the Primavera assistant and how to install it ?
+M: What is the Primavera assistant and how to install it ?
 R: Primavera assistant;Primavera assistant installation
 
-Q: What are the differnces between Office 365 sharepoint and Sharepoint ws v2 connectors ?
+M: What are the differnces between Office 365 sharepoint and Sharepoint ws v2 connectors ?
 R: Office 365 sharepoint connector;Sharepoint ws v2 connector
 
-Q: How does the index encryption impact indexing or search perfromances 
+M: How does the index encryption impact indexing or search perfromances 
 R: index encryption impact on search perfomances;index encryption impact on indexing performances
 [END EXAMPLES]
 
-Q: {{$input}}
-R:
+Input Message: 
+M: {{$message}}

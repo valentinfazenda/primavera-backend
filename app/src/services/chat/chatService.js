@@ -31,10 +31,19 @@ async function executeMessage(message, chatId, userId, socket) {
         // Generate queries based on the message received through the socket
         const modelId = chat.modelId;
         const queries = await queryGeneratorService(message, modelId, chatHistory);
-        // Execute the search with the generated queries
-        // const chunks = await searchService(queries); TO BE DONE
+        console.log(queries);
+        // queries is a json with a queries object where you will iterate on queries.queries to get the queries
+        // Execute the search for each generated queries, create a chunks object that is an array of strings
+        let chunks = [];
+        // if (queries.queries && Array.isArray(queries.queries)) {
+        //     for (const query of queries.queries) {
+        //         const result = await searchService(query);
+        //         chunks.push(result);
+        //     }
+        // }
+
         // Generate a response from the search results
-        // const response = await messageGenerationService(chunks, message, socket); TO BE DONE
+        //const response = await messageGenerationService(chunks, message, socket);
 
         // Create new message for the agent's response
         // const agentMessage = new Message({
