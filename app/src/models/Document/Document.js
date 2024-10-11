@@ -15,12 +15,10 @@ const DocumentSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  extension: {
-    type: String,
-    required: true,
-    lowercase: true,
-    trim: true
-  },
+  status: { 
+    type: String, 
+    required: true, 
+    default: 'unknown' },
   creationDate: {
     type: Date,
     required: true,

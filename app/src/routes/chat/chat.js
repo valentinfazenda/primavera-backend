@@ -1,5 +1,6 @@
 import express from 'express';
 const router = express.Router();
+import { ObjectId } from 'mongodb';
 import { authenticateToken } from '../../middlewares/auth.js';
 import Chat from '../../models/Chat/Chat.js';
 import Workspace from '../../models/Workspace/Workspace.js';
@@ -33,7 +34,7 @@ router.post('/create', authenticateToken, async (req, res) => {
         if (!company) throw new Error('Company not found');
 
         // Find the model using company.id
-        const model = await Model.findOne({ companyId: company._id });
+        const model = await Model.findOne({ companyId: new ObjectId(company._id) });
         if (!model) throw new Error('Model not found');
 
         // Create a new chat associated with the workspace

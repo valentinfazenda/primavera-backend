@@ -4,6 +4,7 @@ import multer from 'multer';
 import { authenticateToken } from '../../middlewares/auth.js';
 import { createDocument, processDocument } from '../../services/documents/documentsService.js';
 import Document from '../../models/Document/Document.js';
+import { S3 } from '@aws-sdk/client-s3';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -54,5 +55,25 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
         res.status(500).json({ error: error.message });
     }
 });
+
+// Obtain presigned URL
+router.get('/generate-presigned-url', (req, res) => {
+    const { fileName, fileType } = req.query;
+  
+    const s3Params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: fileName,
+      Expires: 60 * 5, // URL will be valid for 5 minutes
+      ContentType: fileType,
+    };
+  
+    S3.getSignedUrl('putObject', s3Params, (err, url) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: 'Error generating presigned URL' });
+      }
+      res.json({ url });
+    });
+  });
 
 export default router;
