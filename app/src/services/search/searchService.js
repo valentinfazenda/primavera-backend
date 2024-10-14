@@ -21,7 +21,7 @@ async function calculateSimilarity(phraseEmbedding, embeddedChunks) {
         });
 
         // Return the best match found by the API
-        return response.data;
+        return response.data.chunks;
     } catch (error) {
         console.error('Error calling /calculate_similarity endpoint:', error.response ? error.response.data : error.message);
         throw error;
@@ -50,7 +50,7 @@ async function searchService(phrase) {
 
         // Step 4: Call the API to find the most similar chunk
         logTime('Start search');
-        const mostSimilarChunks = await calculateSimilarity(phraseEmbedded, chunksArray); // return an array of chunks of lenght i
+        const mostSimilarChunks = await calculateSimilarity(phraseEmbedded, chunksArray, 10); // return an array of chunks of lenght i
         logTime('Search done');
 
         // Step 5: Find in the chunks collection the corresponding chunks based on similarity
@@ -66,6 +66,7 @@ async function searchService(phrase) {
             chunkText: chunk.text,
             documentId: chunk.documentId
         }));
+        return result
 
     } catch (error) {
         console.error('Error in searchService:', error);

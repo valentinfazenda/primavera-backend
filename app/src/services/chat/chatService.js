@@ -45,9 +45,10 @@ async function executeMessage(message, chatId, userId, socket) {
 
         // Generate a response from the search results
         const context = {
-            chunks: chunks,
+            chunks: JSON.stringify(chunks),
             query: message
         };
+        console.log("context:", context)
         const response = await messageGenerationService(context, modelId, chatId, socket);
 
         // Create new message for the agent's response
