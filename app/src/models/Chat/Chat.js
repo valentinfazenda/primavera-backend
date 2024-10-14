@@ -5,6 +5,7 @@ const { Schema } = mongoose;
 
 const ChatSchema = new Schema({
     workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', required: true },
+    name: { type: String, required: true },
     creationDate: { type: Date, required: true, default: Date.now },
     modelId: { type: mongoose.Schema.Types.ObjectId, ref: 'Model', required: true },
 });

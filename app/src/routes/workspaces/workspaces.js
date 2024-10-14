@@ -2,13 +2,25 @@ import express from 'express';
 const router = express.Router();
 import { authenticateToken } from '../../middlewares/auth.js';
 import Workspace from '../../models/Workspace/Workspace.js';
-
+import Chat from '../../models/Chat/Chat.js';
+import Document from '../../models/Document/Document.js';
 
 router.get('/list', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
         const workspaces = await Workspace.find({ userId });
-        res.status(200).json(workspaces);
+
+        const workspacesDetails = await Promise.all(workspaces.map(async (workspace) => {
+            const chats = await Chat.find({ workspaceId: workspace._id }).select('_id');
+            const documents = await Document.find({ workspaceId: workspace._id }).select('_id');
+            return {
+                ...workspace.toObject(),
+                chats: chats.map(chat => chat._id),
+                documents: documents.map(doc => doc._id)
+            };
+        }));
+
+        res.status(200).json(workspacesDetails);
     } catch (error) {
         console.error('Error fetching workspaces:', error);
         res.status(500).json({ error: error.message });
