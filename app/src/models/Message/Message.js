@@ -6,6 +6,7 @@ const { Schema } = mongoose;
 const MessageSchema = new Schema({
     chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat', required: true },
     text: { type: String, required: true },
+    sender: { type: String, required: true },
     creationDate: { type: Date, required: true, default: Date.now },
 });
 

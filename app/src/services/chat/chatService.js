@@ -17,6 +17,7 @@ async function executeMessage(message, chatId, userId, socket) {
         const userMessage = new Message({
             chatId: chat._id,  // Reference to the chat document
             text: message,  // Text from the socket message
+            sender: 'user'  // Sender type (user or agent)
         });
         await userMessage.save();  // Save the user message to the database
 
@@ -52,7 +53,8 @@ async function executeMessage(message, chatId, userId, socket) {
         // Create new message for the agent's response
         const agentMessage = new Message({
             chatId: chat._id,  // Reference to the chat document
-             text: response,  // Response text from the service
+            text: response,  // Response text from the service
+            sender: 'agent'  // Sender type (user or agent)
          });
         await agentMessage.save();
 

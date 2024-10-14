@@ -1,6 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { ObjectId } from 'mongodb';
+import { executeMessage } from '../../services/chat/chatService.js';
 import { authenticateToken } from '../../middlewares/auth.js';
 import Chat from '../../models/Chat/Chat.js';
 import Workspace from '../../models/Workspace/Workspace.js';
@@ -79,28 +80,36 @@ router.delete('/delete', authenticateToken, async (req, res) => {
 
 // Endpoint to get chat details by ID
 router.post('/details', authenticateToken, async (req, res) => {
-    const { chatId } = req.body;
+    const { chatId } = req.body;  // Extract chatId from the request body
 
     try {
-        // Verify that the chat exists
+        // Verify if the chat exists in the database
         const chat = await Chat.findById(chatId);
         if (!chat) {
-            return res.status(404).json({ error: "Chat not found" });
+            return res.status(404).json({ error: "Chat not found" }); // Return 404 if the chat doesn't exist
         }
 
-        // Retrieve the workspaceId from the chat and check if the user owns the workspace
+        // Retrieve the workspace associated with the chat and check if the user has access
         const workspace = await Workspace.findById(chat.workspaceId);
         if (!workspace || workspace.userId.toString() !== req.user.id) {
-            return res.status(403).json({ error: "Unauthorized access to this workspace" });
+            return res.status(403).json({ error: "Unauthorized access to this workspace" }); // Return 403 if user doesn't own the workspace
         }
 
-        // Return the chat details
-        res.status(200).json(chat);
+        // Retrieve all messages associated with this chat
+        const messages = await Message.find({ chatId: chat._id }); // Fetch messages where chatId matches the chat's ID
+
+        // Return both chat details and associated messages
+        res.status(200).json({
+            chat,     // Return chat details
+            messages  // Return list of messages
+        });
     } catch (error) {
-        console.error('Error fetching chat details:', error);
+        // Catch and log any errors during the process, returning a 500 error
+        console.error('Error fetching chat details and messages:', error);
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // Endpoint to list all chats associated with a specific workspace
 router.post('/list', authenticateToken, async (req, res) => {
@@ -180,6 +189,13 @@ router.patch('/update', authenticateToken, async (req, res) => {
         console.error('Error updating chat:', error);
         res.status(500).json({ error: error.message });
     }
+});
+
+router.post('/message', authenticateToken, async (req, res) => {
+    const {chatId, message} = req.body;
+
+    const result = await executeMessage(message, chatId, req.user.id);
+    res.status(200).json({ message: result });
 });
 
 
