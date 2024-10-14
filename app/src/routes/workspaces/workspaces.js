@@ -41,7 +41,17 @@ router.post('/details', authenticateToken, async (req, res) => {
             return res.status(403).json({ error: "Unauthorized access" });
         }
 
-        res.status(200).json(workspace);
+        const documents = await Document.find({ workspaceId: workspace._id }).select('name');
+
+        const chats = await Chat.find({ workspaceId: workspace._id }).select('name');
+
+        const workspaceDetails = {
+            ...workspace.toObject(),
+            documents: documents.map(doc => doc.name),
+            chats: chats.map(chat => chat.name)
+        };
+
+        res.status(200).json(workspaceDetails);
     } catch (error) {
         console.error('Error finding workspace:', error);
         res.status(500).json({ error: error.message });
