@@ -48,7 +48,7 @@ router.post('/details', authenticateToken, async (req, res) => {
         const workspaceDetails = {
             ...workspace.toObject(),
             documents: documents.map(doc => doc.name),
-            chats: chats.map(chat => chat.name)
+            chats: chats.map(chat => chat.toObject())
         };
 
         res.status(200).json(workspaceDetails);
