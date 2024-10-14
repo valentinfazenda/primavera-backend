@@ -103,24 +103,33 @@ router.post('/details', authenticateToken, async (req, res) => {
 });
 
 // Endpoint to list all chats associated with a specific workspace
-router.get('/list', authenticateToken, async (req, res) => {
-    const { workspaceId } = req.query;
+router.post('/list', authenticateToken, async (req, res) => {
+    const { workspaceId } = req.body;
 
     try {
-        // Verify that the workspace exists and belongs to the authenticated user
-        const workspace = await Workspace.findById(workspaceId);
-        if (!workspace) {
-            return res.status(404).json({ error: "Workspace not found" });
+        if (!workspaceId) {
+            const workspaces = await Workspace.find({ userId: req.user.id });
+            const workspaceIds = workspaces.map(workspace => workspace._id);
+            const chats = await Chat.find({ workspaceId: { $in: workspaceIds } });
+            return res.status(200).json(chats);
+        }
+        else {
+            // Verify that the workspace exists and belongs to the authenticated user
+            const workspace = await Workspace.findById(workspaceId);
+            if (!workspace) {
+                return res.status(404).json({ error: "Workspace not found" });             
+            }
+
+            // Check if the user is authorized to list chats for this workspace
+            if (workspace.userId.toString() !== req.user.id) {
+                return res.status(403).json({ error: "Unauthorized access to this workspace" });
+            }
+
+            // List all chats associated with this workspace
+            const chats = await Chat.find({ workspaceId });
+            res.status(200).json(chats); // Return the list of chats
         }
 
-        // Check if the user is authorized to list chats for this workspace
-        if (workspace.userId.toString() !== req.user.id) {
-            return res.status(403).json({ error: "Unauthorized access to this workspace" });
-        }
-
-        // List all chats associated with this workspace
-        const chats = await Chat.find({ workspaceId });
-        res.status(200).json(chats); // Return the list of chats
     } catch (error) {
         console.error('Error fetching chats:', error);
         res.status(500).json({ error: error.message });

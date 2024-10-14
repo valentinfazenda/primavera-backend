@@ -28,7 +28,7 @@ async function calculateSimilarity(phraseEmbedding, embeddedChunks) {
     }
 }
 
-// Service to search for the embedding of a given phrase
+// Service to search for the embedding of a given phrasfle
 async function searchService(phrase) {
     try {
         logTime('Start process');
@@ -37,7 +37,7 @@ async function searchService(phrase) {
         logTime('Generate embeddings and retrieve documents in parallel');
         const [phraseEmbedded, chunks] = await Promise.all([
             embedChunks([phrase]),
-            Chunk.findAll({}, { embeddedChunks: 1, name: 1 })
+            Chunk.find({}, { embeddedChunk: 1 })
         ]);
         logTime('Embeddings generated and chunks retrieved');
 
@@ -45,18 +45,27 @@ async function searchService(phrase) {
             throw new Error('No embeded chunks found');
         }
 
-        // Step 3: store all chunks in a single array (each chunks is an array of numbers)
-        const chunksArray = documents.flatMap(chunks => chunks.embeddedChunks);
+        // Step 3: store all chunks in an array (each chunks is an array of numbers)
+        const chunksArray = chunks.map(chunk => chunk.embeddedChunk);
 
         // Step 4: Call the API to find the most similar chunk
         logTime('Start search');
-        const mostSimilarChunks = await calculateSimilarity(phraseEmbedding, chunksArray); // return an array of chunks of lenght i
+        const mostSimilarChunks = await calculateSimilarity(phraseEmbedded, chunksArray); // return an array of chunks of lenght i
         logTime('Search done');
 
-        // Step 5: Find in the chunks tables chunks where embeddedChunk=chunks for the i chunks returned get chunk.text and chunk.documentId
+        // Step 5: Find in the chunks collection the corresponding chunks based on similarity
+        // mostSimilarChunks is an array of indices or chunk data from the API
+        logTime('Fetching matched chunks from the database');
+        const matchedChunks = await Chunk.find({
+            embeddedChunk: { $in: mostSimilarChunks }
+        }, { text: 1, documentId: 1 }); // Retrieve chunk text and documentId
+        logTime('Matched chunks retrieved');
 
-        // Return an array object containings chunks as a couple of chunk and documentId
-        return matchingDocument.name;
+        // Return an array of objects containing chunk text and documentId
+        const result = matchedChunks.map(chunk => ({
+            chunkText: chunk.text,
+            documentId: chunk.documentId
+        }));
 
     } catch (error) {
         console.error('Error in searchService:', error);
