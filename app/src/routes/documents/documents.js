@@ -1,20 +1,13 @@
+"use server";
 import express from 'express';
 const router = express.Router();
 import multer from 'multer';
 import { authenticateToken } from '../../middlewares/auth.js';
 import { createDocument, processDocument } from '../../services/documents/documentsService.js';
 import Document from '../../models/Document/Document.js';
-import { S3 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { PutObjectCommand } from '@aws-sdk/client-s3'; 
-
-const s3 = new S3({
-    region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-});
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import s3 from '../../config/aws.js';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -69,10 +62,6 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
 // Obtain presigned URL
 router.post('/generate-presigned-url', authenticateToken, async (req, res) => {
     const { fileName, fileType } = req.body;
-
-    console.log('AWS Access Key:', process.env.AWS_ACCESS_KEY_ID);
-    console.log('AWS Secret Key:', process.env.AWS_SECRET_ACCESS_KEY);
-    console.log('AWS Bucket Name:', process.env.AWS_BUCKET_NAME);
 
     try {
         const command = new PutObjectCommand({
