@@ -61,16 +61,21 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
 
 // Obtain presigned URL
 router.post('/generate-presigned-url', authenticateToken, async (req, res) => {
-    const { fileName, fileType } = req.body;
+    const { fileName, fileType, workspaceId } = req.body;
+
+    const userId = req.user.id;
 
     try {
+        const key = `documents/${userId}/${workspaceId}/${fileName}`;
+
         const command = new PutObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
-            Key: fileName,
+            Key: key,
             ContentType: fileType,
         });
 
-        const url = await getSignedUrl(s3, command, { expiresIn: 300 }); // URL valid for 5 minutes
+        const url = await getSignedUrl(s3, command, { expiresIn: 300 });
+
         res.json({ url });
     } catch (error) {
         console.error('Error generating presigned URL:', error);
