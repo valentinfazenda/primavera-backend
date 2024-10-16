@@ -5,6 +5,16 @@ import { authenticateToken } from '../../middlewares/auth.js';
 import { createDocument, processDocument } from '../../services/documents/documentsService.js';
 import Document from '../../models/Document/Document.js';
 import { S3 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { PutObjectCommand } from '@aws-sdk/client-s3'; 
+
+const s3 = new S3({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+});
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -57,23 +67,26 @@ router.post('/add', authenticateToken, upload.single('file'), async (req, res) =
 });
 
 // Obtain presigned URL
-router.get('/generate-presigned-url', (req, res) => {
-    const { fileName, fileType } = req.query;
-  
-    const s3Params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: fileName,
-      Expires: 60 * 5, // URL will be valid for 5 minutes
-      ContentType: fileType,
-    };
-  
-    S3.getSignedUrl('putObject', s3Params, (err, url) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ error: 'Error generating presigned URL' });
-      }
-      res.json({ url });
-    });
-  });
+router.post('/generate-presigned-url', authenticateToken, async (req, res) => {
+    const { fileName, fileType } = req.body;
+
+    console.log('AWS Access Key:', process.env.AWS_ACCESS_KEY_ID);
+    console.log('AWS Secret Key:', process.env.AWS_SECRET_ACCESS_KEY);
+    console.log('AWS Bucket Name:', process.env.AWS_BUCKET_NAME);
+
+    try {
+        const command = new PutObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: fileName,
+            ContentType: fileType,
+        });
+
+        const url = await getSignedUrl(s3, command, { expiresIn: 300 }); // URL valid for 5 minutes
+        res.json({ url });
+    } catch (error) {
+        console.error('Error generating presigned URL:', error);
+        res.status(500).json({ error: 'Error generating presigned URL' });
+    }
+});
 
 export default router;
