@@ -41,7 +41,8 @@ router.post('/create', authenticateToken, async (req, res) => {
         // Create a new chat associated with the workspace
         const newChat = new Chat({
             workspaceId,
-            modelId: model._id
+            modelId: model._id,
+            name: "New chat"
         });
 
         const savedChat = await newChat.save();

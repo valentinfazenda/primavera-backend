@@ -1,5 +1,6 @@
 "use server";
 import express from 'express';
+import axios from 'axios'; // Import axios to make HTTP requests
 const router = express.Router();
 import multer from 'multer';
 import { authenticateToken } from '../../middlewares/auth.js';
@@ -80,6 +81,26 @@ router.post('/generate-presigned-url', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error generating presigned URL:', error);
         res.status(500).json({ error: 'Error generating presigned URL' });
+    }
+});
+
+// Endpoint to process the document
+router.post('/processDocument', authenticateToken, async (req, res) => {
+    const { Records } = req.body;
+
+    if (!Records || Records.length === 0) {
+        return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    try {
+        // Forward the request body to the external service
+        const response = await axios.post('http://localhost:4200/processDocument', { Records });
+        
+        // Send back the response from the external service to the client
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        console.error('Error forwarding request to processDocument:', error);
+        res.status(500).json({ error: 'Failed to process the document' });
     }
 });
 

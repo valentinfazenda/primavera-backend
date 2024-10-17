@@ -37,7 +37,7 @@ async function executeMessage(message, chatId, userId, socket) {
         let chunks = [];
         if (queries.queries) {
              for (const query of queries.queries) {
-                 const result = await searchService(query);
+                 const result = await searchService(query, chat.workspaceId);
                  console.log("result", result);
                  chunks.push(result);
              }

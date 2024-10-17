@@ -82,11 +82,10 @@ router.delete('/delete', authenticateToken, async (req, res) => {
 });
 
 router.post('/create', authenticateToken, async (req, res) => {
-    const { name } = req.body;
 
     try {
         const newWorkspace = new Workspace({
-            name,
+            name: "New workspace",
             userId: req.user.id 
         });
 
