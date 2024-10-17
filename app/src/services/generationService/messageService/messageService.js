@@ -6,14 +6,16 @@ import Model from '../../../models/Model/Model.js';
 
 async function messageGenerationService(context, modelId, chatId, socket) {
     try {
-        // Define the path to the prompt file
-        const filePath = 'C:\\Users\\Valentin.FAZENDA\\OneDrive - Sinequa\\Documents\\GitHub\\primavera-backend\\app\\src\\prompts\\generateAnswerMessage.txt';
+        // Define the path to the prompt file using a relative path
+        const filePath = path.resolve('app/src/prompts/generateAnswerMessage.txt');
 
         // Read the prompt template from the file
         let template = await fs.readFile(filePath, 'utf8');
 
         // Replace the placeholder with the actual context
-        const messagePrompt = template.replace(/{{\$context}}/g, context.chunks).replace(/{{\$query}}/g, context.query);
+        const messagePrompt = template
+            .replace(/{{\$context}}/g, context.chunks)
+            .replace(/{{\$query}}/g, context.query);
 
         // Find the chat
         const model = await Model.findById(modelId).orFail(new Error("Model not found"));
