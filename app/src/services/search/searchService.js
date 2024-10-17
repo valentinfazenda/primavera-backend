@@ -28,33 +28,44 @@ async function calculateSimilarity(phraseEmbedding, embeddedChunks) {
     }
 }
 
-// Service to search for the embedding of a given phrasfle
-async function searchService(phrase) {
+// Service to search for the embedding of a given phrase
+async function searchService(phrase, workspaceId) {
     try {
         logTime('Start process');
 
-        // Exécuter les deux opérations en parallèle
-        logTime('Generate embeddings and retrieve documents in parallel');
-        const [phraseEmbedded, chunks] = await Promise.all([
-            embedChunks([phrase]),
-            Chunk.find({}, { embeddedChunk: 1 })
-        ]);
-        logTime('Embeddings generated and chunks retrieved');
+        // Step 1: Find all documents that have the provided workspaceId
+        logTime('Fetching documents by workspaceId');
+        const documents = await Document.find({ workspaceId: workspaceId }, { _id: 1 });
+        logTime('Documents retrieved');
 
-        if (!chunks || chunks.length === 0) {
-            throw new Error('No embeded chunks found');
+        if (!documents || documents.length === 0) {
+            return [];
         }
 
-        // Step 3: store all chunks in an array (each chunks is an array of numbers)
+        // Extract the documentIds from the retrieved documents
+        const documentIds = documents.map(doc => doc._id);
+
+        // Step 2: Parallelize embedding generation and chunk retrieval
+        logTime('Parallel execution of embedding generation and chunk retrieval');
+        const [phraseEmbedded, chunks] = await Promise.all([
+            embedChunks([phrase]),  // Generate the embeddings for the phrase
+            Chunk.find({ documentId: { $in: documentIds } }, { embeddedChunk: 1 })  // Retrieve the chunks associated with the documentIds
+        ]);
+        logTime('Embeddings and chunks retrieved');
+
+        if (!chunks || chunks.length === 0) {
+            throw new Error('No embedded chunks found for the specified workspace');
+        }
+
+        // Prepare an array of the embedded chunks
         const chunksArray = chunks.map(chunk => chunk.embeddedChunk);
 
-        // Step 4: Call the API to find the most similar chunk
+        // Step 3: Call the API to find the most similar chunk
         logTime('Start search');
-        const mostSimilarChunks = await calculateSimilarity(phraseEmbedded, chunksArray, 10); // return an array of chunks of lenght i
+        const mostSimilarChunks = await calculateSimilarity(phraseEmbedded, chunksArray);
         logTime('Search done');
 
-        // Step 5: Find in the chunks collection the corresponding chunks based on similarity
-        // mostSimilarChunks is an array of indices or chunk data from the API
+        // Step 4: Find the chunks in the database that correspond to the most similar ones
         logTime('Fetching matched chunks from the database');
         const matchedChunks = await Chunk.find({
             embeddedChunk: { $in: mostSimilarChunks }
@@ -66,7 +77,8 @@ async function searchService(phrase) {
             chunkText: chunk.text,
             documentId: chunk.documentId
         }));
-        return result
+
+        return result;
 
     } catch (error) {
         console.error('Error in searchService:', error);
