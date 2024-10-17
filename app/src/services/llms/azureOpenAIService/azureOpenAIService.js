@@ -32,13 +32,24 @@ async function sendMessageToAzureOpenAI(messages, model, socket) {
         },
       ];
 
-    const completions = await client.chat.completions.create({
+    const events = await client.chat.completions.create({
         messages: messagesArray,
         model: model.modelDeploymentName, 
         max_tokens: 16000, 
+        stream: true
     });
-    response = completions.choices[0].message.content
+    // response = completions.choices[0].message.content
 
+    for await (const event of events) {
+        const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
+        response += content;
+        if (socket && content) {
+            socket.emit('message', { response, status: 'done' });
+        }
+    }
+    if (socket && response) {
+        socket.emit('message', { response, status: 'done' });
+    }
 
     // // Process and handle the response
     // completions.choices.forEach(choice => {
@@ -48,12 +59,6 @@ async function sendMessageToAzureOpenAI(messages, model, socket) {
     //         socket.emit('message', { response, status: 'loading' });
     //     }
     // });
-
-    // Final socket emission on completion
-    if (socket && response) {
-        socket.emit('message', { response, status: 'done' });
-    }
-
     return response;
 }
 
