@@ -44,10 +44,6 @@ async function searchService(phrase, workspaceId) {
 
         // Extract the documentIds from the retrieved documents and ensure they are ObjectId instances
         const documentIds = documents.map(document => document._id);
-        //const documentIds = documents.map(doc => doc._id.toString()); // as documentId is not an ooid for now
-
-        // DEBUG: Log the documentIds to check if they are correctly formatted
-        console.log("Document IDs:", documentIds);
 
         // Step 2: Parallelize embedding generation and chunk retrieval
         logTime('Parallel execution of embedding generation and chunk retrieval');
