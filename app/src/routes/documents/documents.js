@@ -6,9 +6,11 @@ import multer from 'multer';
 import { authenticateToken } from '../../middlewares/auth.js';
 import { createDocument, processDocument } from '../../services/documents/documentsService.js';
 import Document from '../../models/Document/Document.js';
+import Chunk from '../../models/Chunk/Chunk.js';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import s3 from '../../config/aws.js';
+import mongoose from 'mongoose';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -30,15 +32,35 @@ router.post('/details', authenticateToken, async (req, res) => {
 
 // Delete a document by its ID
 router.delete('/delete', authenticateToken, async (req, res) => {
-    const documentId = req.body.id;
+    const documentId = req.body.id; // Get the document ID from the request body
+
     try {
-        const deletedDocument = await Document.findByIdAndDelete(documentId);
+        console.log('documentId:', documentId);
+        // Convert documentId to ObjectId format
+        const objectId = new mongoose.Types.ObjectId(documentId);
+        console.log('objectId:', objectId);
+
+        // 1. Find and delete the document by its ObjectId
+        const deletedDocument = await Document.findByIdAndDelete(objectId);
+        
+        // If the document is not found, return a 404 response
         if (!deletedDocument) {
             return res.status(404).json({ error: "Document not found" });
         }
-        res.status(200).json({ message: "Document deleted successfully" });
+
+        // 2. Delete all chunks associated with the documentId
+        const deletedChunks = await Chunk.deleteMany({ documentId: objectId });
+
+        // 3. Respond with success message, including details on the deleted document and chunk count
+        res.status(200).json({
+            message: "Document and associated chunks deleted successfully",
+            deletedDocument: deletedDocument, // Return the deleted document
+            deletedChunks: deletedChunks.deletedCount, // Number of chunks deleted
+        });
+
     } catch (error) {
-        console.error(error);
+        // Catch any errors and respond with a 500 status code
+        console.error('Error deleting document or chunks:', error);
         res.status(500).json({ error: error.message });
     }
 });
