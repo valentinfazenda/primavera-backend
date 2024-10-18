@@ -43,40 +43,66 @@ router.delete('/delete', authenticateToken, async (req, res) => {
     }
 });
 
-// Add a new document 
-router.post('/add', authenticateToken, upload.single('file'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+// Add a new document
+router.post('/add', authenticateToken, async (req, res) => {
+    const { fileName, workspaceId } = req.body;
+
+    // Validate input
+    if (!fileName || !workspaceId) {
+        return res.status(400).json({ error: "fileName and workspaceId are required" });
     }
 
     try {
-        const savedDocument = await createDocument(req.file.buffer, req.file.originalname);
-        res.status(201).json({ message: "Document processing started", id: savedDocument._id, name: savedDocument.name });
-        processDocument(savedDocument._id, req.file.buffer, savedDocument.extension)
-            .catch(err => console.error('Error processing document in background:', err));
+        // Create a new document in the database
+        const newDocument = new Document({
+            name: fileName,
+            workspaceId: workspaceId,
+            status: 'created',
+            createdAt: new Date()
+        });
+
+        // Save the document to the database
+        const savedDocument = await newDocument.save();
+
+        // Return success response with document details
+        res.status(201).json({ 
+            message: "Document created successfully", 
+            id: savedDocument._id, 
+            name: savedDocument.name, 
+            status: savedDocument.status 
+        });
+
     } catch (error) {
-        console.error('Error saving initial document:', error);
+        console.error('Error saving document:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 // Obtain presigned URL
 router.post('/generate-presigned-url', authenticateToken, async (req, res) => {
-    const { fileName, fileType, workspaceId } = req.body;
+    const { fileName, fileType, workspaceId, title } = req.body;
 
+    // Get the userId from the authenticated user
     const userId = req.user.id;
 
     try {
+        // Define the key for the object in S3, including userId and workspaceId in the path
         const key = `documents/${userId}/${workspaceId}/${fileName}`;
 
+        // Create the command for generating the presigned URL, including the workspaceId as metadata
         const command = new PutObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: key,
             ContentType: fileType,
+            Metadata: {
+                title, // Adding title as metadata
+            }
         });
 
+        // Generate the presigned URL, setting it to expire in 300 seconds (5 minutes)
         const url = await getSignedUrl(s3, command, { expiresIn: 300 });
 
+        // Return the presigned URL to the client
         res.json({ url });
     } catch (error) {
         console.error('Error generating presigned URL:', error);
@@ -84,24 +110,53 @@ router.post('/generate-presigned-url', authenticateToken, async (req, res) => {
     }
 });
 
-// Endpoint to process the document
-router.post('/processDocument', authenticateToken, async (req, res) => {
-    const { Records } = req.body;
 
-    if (!Records || Records.length === 0) {
-        return res.status(400).json({ error: 'Invalid request body' });
+// Synchronize documents by workspaceId
+router.post('/synchronize', authenticateToken, async (req, res) => {
+    const { workspaceId } = req.body;
+    const userId = req.user.id;
+
+    if (!workspaceId) {
+        return res.status(400).json({ error: 'workspaceId is required' });
     }
 
     try {
+        // Find all documents with the given workspaceId, without fulltext and with status 'downloaded'
+        const documents = await Document.find({
+            workspaceId: workspaceId,
+            fulltext: { $exists: false },
+            status: 'created'
+        });
+
+        if (documents.length === 0) {
+            return res.status(404).json({ error: 'No documents found matching the criteria' });
+        }
+
+        // Build the Records array
+        const records = documents.map(doc => ({
+            s3: {
+                bucket: { name: process.env.AWS_BUCKET_NAME },
+                object: { key: `documents/${userId}/${doc.workspaceId}/${doc.name}` }
+            }
+        }));
+
+        // Prepare the body for the processDocument API
+        const requestBody = {
+            Records: records
+        };
+
+        console.log('Request body:', requestBody.Records[0]);
+
         // Forward the request body to the external service
-        const response = await axios.post('http://localhost:4200/processDocument', { Records });
-        
+        //axios.post('http://localhost:4200/processDocument', requestBody);
+
         // Send back the response from the external service to the client
-        res.status(response.status).json(response.data);
+        res.status(200).json({ message: 'Documents sent for syncronization successfully' });
     } catch (error) {
-        console.error('Error forwarding request to processDocument:', error);
-        res.status(500).json({ error: 'Failed to process the document' });
+        console.error('Error synchronizing documents:', error);
+        res.status(500).json({ error: 'Failed to synchronize documents' });
     }
 });
+
 
 export default router;
