@@ -9,6 +9,7 @@ import Message from '../../models/Message/Message.js';
 import User from '../../models/User/User.js';
 import Company from '../../models/Company/Company.js';
 import Model from '../../models/Model/Model.js';
+import mongoose from 'mongoose';
 
 // Endpoint to add a new chat
 router.post('/create', authenticateToken, async (req, res) => {
@@ -55,26 +56,37 @@ router.post('/create', authenticateToken, async (req, res) => {
 
 // Endpoint to delete a chat
 router.delete('/delete', authenticateToken, async (req, res) => {
-    const { chatId } = req.body;
+    const chatId = req.body.id; 
 
     try {
-        // Verify that the chat exists
-        const chat = await Chat.findById(chatId);
+        // 1. Verify that the chat exists
+        const objectId = new mongoose.Types.ObjectId(chatId);
+        const chat = await Chat.findById(objectId);
         if (!chat) {
             return res.status(404).json({ error: "Chat not found" });
         }
 
-        // Retrieve the workspaceId from the chat and check if the user owns the workspace
+        // 2. Retrieve the workspaceId from the chat and check if the user owns the workspace
         const workspace = await Workspace.findById(chat.workspaceId);
         if (!workspace || workspace.userId.toString() !== req.user.id) {
             return res.status(403).json({ error: "Unauthorized access to this workspace" });
         }
 
-        // Delete the chat
-        await Chat.findByIdAndDelete(chatId);
-        res.status(200).json({ message: "Chat deleted successfully" });
+        // 3. Delete the chat
+        await Chat.findByIdAndDelete(objectId);
+
+        // 4. Delete all messages associated with the chatId
+        const deletedMessages = await Message.deleteMany({ chatId: objectId });
+
+        // 5. Respond with success message and the number of deleted messages
+        res.status(200).json({
+            message: "Chat and associated messages deleted successfully",
+            deletedMessagesCount: deletedMessages.deletedCount, // Number of messages deleted
+        });
+
     } catch (error) {
-        console.error('Error deleting chat:', error);
+        // Catch any errors during the process
+        console.error('Error deleting chat or messages:', error);
         res.status(500).json({ error: error.message });
     }
 });
