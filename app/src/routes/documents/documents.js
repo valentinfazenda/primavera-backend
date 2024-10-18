@@ -35,10 +35,8 @@ router.delete('/delete', authenticateToken, async (req, res) => {
     const documentId = req.body.id; // Get the document ID from the request body
 
     try {
-        console.log('documentId:', documentId);
         // Convert documentId to ObjectId format
         const objectId = new mongoose.Types.ObjectId(documentId);
-        console.log('objectId:', objectId);
 
         // 1. Find and delete the document by its ObjectId
         const deletedDocument = await Document.findByIdAndDelete(objectId);
