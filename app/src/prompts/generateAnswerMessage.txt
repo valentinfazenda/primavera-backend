@@ -1,4 +1,4 @@
-Answer to the following question with your knwoledge and, if available, with the documents provided
+Answer to the following question with the documents provided, and if no document is provided use your own knowledge but always mention it.
 
 DOCUMENTS: {{$context}}
 
