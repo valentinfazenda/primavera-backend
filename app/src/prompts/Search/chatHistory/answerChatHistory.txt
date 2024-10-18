@@ -1,0 +1,9 @@
+Answer to the following question with the knowledge of the chat history
+
+CHAT HISTORY: {{$chatHistory}}
+
+QUERY: {{$query}}
+
+DATE:10 10 2024
+
+ANSWER:
