@@ -89,13 +89,16 @@ router.post('/generate-presigned-url', authenticateToken, async (req, res) => {
         // Define the key for the object in S3, including userId and workspaceId in the path
         const key = `documents/${userId}/${workspaceId}/${fileName}`;
 
+        const fileext = title.split('.').pop();
+
         // Create the command for generating the presigned URL, including the workspaceId as metadata
         const command = new PutObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: key,
             ContentType: fileType,
             Metadata: {
-                title, // Adding title as metadata
+                title,
+                fileext
             }
         });
 
