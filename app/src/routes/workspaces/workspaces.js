@@ -41,13 +41,13 @@ router.post('/details', authenticateToken, async (req, res) => {
             return res.status(403).json({ error: "Unauthorized access" });
         }
 
-        const documents = await Document.find({ workspaceId: workspace._id }).select('name');
+        const documents = await Document.find({ workspaceId: workspace._id }).select('name status');
 
         const chats = await Chat.find({ workspaceId: workspace._id }).select('name');
 
         const workspaceDetails = {
             ...workspace.toObject(),
-            documents: documents.map(doc => doc.name),
+            documents,
             chats: chats.map(chat => chat.toObject())
         };
 

@@ -7,7 +7,7 @@ import { authenticateToken } from '../../middlewares/auth.js';
 import { createDocument, processDocument } from '../../services/documents/documentsService.js';
 import Document from '../../models/Document/Document.js';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import s3 from '../../config/aws.js';
 
 const storage = multer.memoryStorage();
@@ -57,7 +57,7 @@ router.post('/add', authenticateToken, async (req, res) => {
         const newDocument = new Document({
             name: fileName,
             workspaceId: workspaceId,
-            status: 'created',
+            status: 'uploading',
             createdAt: new Date()
         });
 
@@ -127,19 +127,43 @@ router.post('/synchronize', authenticateToken, async (req, res) => {
         // Find all documents with the given workspaceId, without fulltext and with status 'downloaded'
         const documents = await Document.find({
             workspaceId: workspaceId,
-            fulltext: { $exists: false },
-            status: 'created'
+            status: 'uploading'
         });
 
         if (documents.length === 0) {
-            return res.status(404).json({ error: 'No documents found matching the criteria' });
+            return res.status(200).json({ error: 'No documents found matching the criteria' });
         }
 
-        // Build the Records array
-        const records = documents.map(doc => ({
+        const validDocuments = [];
+
+        // Check each document's availability on S3 using HeadObjectCommand
+        for (const doc of documents) {
+            const s3Params = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: `documents/${userId}/${doc.workspaceId}/${doc._id}`
+            };
+
+            try {
+                // Check if the document exists on S3 using HeadObjectCommand
+                const headObjectCommand = new HeadObjectCommand(s3Params);
+                await s3.send(headObjectCommand); // Utilise l'instance S3 configurée pour envoyer la commande
+                // If the object exists, add it to the validDocuments array
+                validDocuments.push(doc);
+            } catch (error) {
+                console.error(`Document ${doc.name} not found on S3:`, error);
+                // Skip the document if it's not found on S3
+            }
+        }
+
+        if (validDocuments.length === 0) {
+            return res.status(404).json({ error: 'No valid documents found on S3' });
+        }
+
+        // Build the Records array for valid documents
+        const records = validDocuments.map(doc => ({
             s3: {
                 bucket: { name: process.env.AWS_BUCKET_NAME },
-                object: { key: `documents/${userId}/${doc.workspaceId}/${doc.name}` }
+                object: { key: `documents/${userId}/${doc.workspaceId}/${doc._id}` }
             }
         }));
 
@@ -148,13 +172,20 @@ router.post('/synchronize', authenticateToken, async (req, res) => {
             Records: records
         };
 
-        console.log('Request body:', requestBody.Records[0]);
-
         // Forward the request body to the external service
-        //axios.post('http://localhost:4200/processDocument', requestBody);
+        axios.post('http://localhost:4200/processDocument', requestBody);
+
+        // Update the status of the valid documents to 'processing'
+        await Document.updateMany(
+            {
+                _id: { $in: validDocuments.map(doc => doc._id) },
+                status: 'uploading'
+            },
+            { $set: { status: 'processing' } }
+        );
 
         // Send back the response from the external service to the client
-        res.status(200).json({ message: 'Documents sent for syncronization successfully' });
+        res.status(200).json({ message: 'Documents synchronized successfully' });
     } catch (error) {
         console.error('Error synchronizing documents:', error);
         res.status(500).json({ error: 'Failed to synchronize documents' });
