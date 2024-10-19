@@ -6,7 +6,7 @@ Tu es ici dans une etape d'un workflow plus global qui consiste a gérer ces dem
 Voici le contexte de la discussion que tu as actuellement avec lui:
 {{$chatHistory}}
 
-Son dernier message, auquel tu dois répondre est donc {{$query}}.
+Son dernier message, est donc {{$query}}.
 Afin d'aider au mieux l'utilisateur, tu dois lui demander plus de précision pour pouvoir par la suite répondre à la question.
 Ecris cette question.
 Ta réponse sera transmise en direct dans le chat avec l'utilisateur donc ecris uniquement ta réponse, comme si tu t'adressais directement à lui.

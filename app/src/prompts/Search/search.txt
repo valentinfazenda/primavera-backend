@@ -8,8 +8,9 @@ Son dernier message, auquel tu dois répondre est donc {{$query}}.
 
 Pour retrouver le contenu pertinent pour lui répondre tu as trois options: 
 1. Répondre avec les connaissances déja évoquées dans le chat.
-1. Rechercher des passages de documents via du RAG: tu vas rechercher des passages et retrouver les passages les plus proches vectoriellement parlant de tes recherches dnas les documents du workspace.
-2. Retrouver le contenu entier d'un ou de plusieurs documents spécifique: tu vas chercher des documents spécifiques puis tu auras accès à leur contenu en entier pour répondre à l'utilisateur. 
+2. Rechercher des passages de documents via du RAG: tu vas rechercher des passages et retrouver les passages les plus proches vectoriellement parlant de tes recherches dnas les documents du workspace, tu ne pourras pas acceder aux documents en entier ni en faire un résumé.
+3. Retrouver le contenu entier d'un ou de plusieurs documents spécifique: tu vas chercher des documents spécifiques puis tu auras accès à leur contenu en entier pour répondre à l'utilisateur, cette stratégie est parfaite pour faire un résumé.
 
 Dans le cade de cette conversation, est-il plus pertinent d'adopter la stratégie 1,2 ou 3 afin de lui répondre au mieux?
+Si l'utilisateur semble mentionner un ou plusieurs document retourne 3.
 Répond uniquement 1,2 ou 3. Ta réponse va etre directement passée dans un switch case derriere alors ne répond que le chiffre correspondant à la stratégie.

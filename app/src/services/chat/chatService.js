@@ -8,6 +8,7 @@ import { sendMessageToAzureOpenAI } from '../llms/azureOpenAIService/azureOpenAI
 import { messageGenerationService } from '../generationService/messageService/messageService.js';
 import { searchService } from '../search/searchService.js';
 import Document from '../../models/Document/Document.js';
+import Chunk from '../../models/Chunk/Chunk.js';
 
 async function loadPrompt(filePath, context) {
     const template = await fs.readFile(filePath, 'utf8');
@@ -102,7 +103,7 @@ async function executeMessage(message, chatId, userId, socket) {
                     return answerChatHistory;
                 }
                 case "2": {
-                    console.log('case 2');
+                    console.log('case 2: search information');
                     // Rechercher des informations et générer une réponse
                     const searchInfoPath = path.resolve('app/src/prompts/Search/information/searchInformation.txt');
                     const searchInfoPrompt = await loadPrompt(searchInfoPath, context);
@@ -139,13 +140,18 @@ async function executeMessage(message, chatId, userId, socket) {
                     return response;
                 }
                 case "3": {
-                    // Implémentation similaire pour le cas "3"
-                    console.log('case 3');
+                    // Implémentation pour le cas "3"
+                    console.log('case 3: search document');
                     const searchSummaryPath = path.resolve('app/src/prompts/Search/document/searchDocument.txt');
                     const searchSummaryPrompt = await loadPrompt(searchSummaryPath, context);
-                    const queriesResponse = await sendMessageToAzureOpenAI(searchSummaryPrompt, model);
+                    const queriesResponse = (await sendMessageToAzureOpenAI(searchSummaryPrompt, model))            
+                        .replaceAll('```', '')
+                        .replace('json', '')
+                        .replaceAll('\n', '')
+                        .replaceAll(/\\/g, '');
 
                     let queries;
+                    console.log('queriesResponse', queriesResponse);
                     try {
                         queries = JSON.parse(queriesResponse);
                     } catch (error) {
@@ -159,13 +165,39 @@ async function executeMessage(message, chatId, userId, socket) {
                         const results = await Promise.all(searchPromises);
                         chunks.push(...results);
                     }
+                    console.log('chunks', chunks);
 
+                    // Aplatir le tableau 'chunks' pour obtenir un seul niveau
+                    let flattenedChunks = chunks.flat();
+                    
+                    // Collecter les documentIds à partir des chunks aplatis
+                    let documentIds = new Set();
+                    for (const chunk of flattenedChunks) {
+                        if (chunk.documentId) {
+                            console.log('chunk.documentId', chunk.documentId);
+                            documentIds.add(chunk.documentId.toString());
+                        }
+                    }
+                    console.log('documentIds', documentIds);
+
+                    // Récupérer les documents complets à partir des documentIds
+                    const documents = await Document.find({ _id: { $in: Array.from(documentIds) } });
+                    const documentsFulltexts = documents.map(doc => doc.fulltext);
+
+                    // Ajouter les fulltexts des documents au contexte
                     context = { 
                         ...context,
-                        chunks: JSON.stringify(chunks),
+                        documents: documentsFulltexts,
                     };
+                    /// case summary
 
-                    const response = await messageGenerationService(context, modelId, chatId, socket);
+
+                                        
+                    // Rechercher des informations et générer une réponse
+                    const answerMeetingSummaryPath = path.resolve('app/src/prompts/Search/document/summary/meeting/meetingAnswer.txt');
+                    const answerMeetingSummaryPrompt = (await loadPrompt(answerMeetingSummaryPath, context)).replace(/{{\$document}}/g, context.documents);;
+                    console.log('answerMeetingSummaryPrompt', answerMeetingSummaryPrompt);
+                    const response = await sendMessageToAzureOpenAI(answerMeetingSummaryPrompt, model, socket);
 
                     const agentMessage = new Message({
                         chatId: chat._id,
