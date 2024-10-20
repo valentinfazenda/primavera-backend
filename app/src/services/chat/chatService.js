@@ -8,7 +8,42 @@ import { sendMessageToAzureOpenAI } from '../llms/azureOpenAIService/azureOpenAI
 import { messageGenerationService } from '../generationService/messageService/messageService.js';
 import { searchService } from '../search/searchService.js';
 import Document from '../../models/Document/Document.js';
+import mongoose from 'mongoose';
 import Chunk from '../../models/Chunk/Chunk.js';
+
+
+async function deleteChat(chatId, userId) {
+    try {
+        // 1. Verify that the chat exists
+        const objectId = new mongoose.Types.ObjectId(chatId);
+        const chat = await Chat.findById(objectId);
+        if (!chat) {
+            throw new Error("Chat not found");
+        }
+
+        // 2. Check if the user owns the workspace associated with the chat
+        const workspace = await Workspace.findById(chat.workspaceId);
+        if (!workspace || workspace.userId.toString() !== userId) {
+            throw new Error("Unauthorized access to this workspace");
+        }
+
+        // 3. Delete the chat
+        await Chat.findByIdAndDelete(objectId);
+
+        // 4. Delete all messages associated with the chat
+        const deletedMessages = await Message.deleteMany({ chatId: objectId });
+
+        // 5. Return the result
+        return {
+            message: "Chat and associated messages deleted successfully",
+            deletedMessagesCount: deletedMessages.deletedCount,
+        };
+
+    } catch (error) {
+        // Propagate the error to be handled in the endpoint
+        throw error;
+    }
+}
 
 async function loadPrompt(filePath, context) {
     const template = await fs.readFile(filePath, 'utf8');
@@ -220,5 +255,6 @@ async function executeMessage(message, chatId, userId, socket) {
 }
 
 export {
-    executeMessage
+    executeMessage,
+    deleteChat
 };

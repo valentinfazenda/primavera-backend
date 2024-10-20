@@ -1,57 +1,65 @@
 import Document from '../../models/Document/Document.js';
-import { convertPDFBufferToText } from './pdf/ocrService/ocrService.js';
-import { convertExcelBufferToText } from './xlsx/xlsxService.js';
+import Chunk from '../../models/Chunk/Chunk.js';
+import Workspace from '../../models/Workspace/Workspace.js';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+import s3 from '../../config/aws.js';
+import mongoose from 'mongoose';
 
-async function createDocument(fileBuffer, originalName) {
+/**
+ * Deletes a document by its ID, including associated chunks and the file in S3.
+ * @param {string} documentId - The ID of the document to delete.
+ * @returns {Promise<Object>} - An object containing details of the deleted document and chunks.
+ * @throws {Error} - Throws an error if the document or workspace is not found.
+ */
+async function deleteDocument(documentId) {
+    // Convert documentId to a MongoDB ObjectId
+    const objectId = new mongoose.Types.ObjectId(documentId);
 
-    let fileType;
+    // Find and delete the document by its ObjectId
+    const deletedDocument = await Document.findByIdAndDelete(objectId);
+    if (!deletedDocument) {
+        throw new Error("Document not found");
+    }
+
+    // Extract workspaceId from the deleted document
+    const workspaceId = deletedDocument.workspaceId;
+
+    // Find the workspace to get the userId
+    const workspace = await Workspace.findById(workspaceId);
+    if (!workspace) {
+        throw new Error("Workspace not found");
+    }
+    const userId = workspace.userId;
+
+    // Build the S3 key for the document
+    const s3Key = `documents/${userId}/${workspaceId}/${documentId}`;
+
+    // Parameters for deleting the object from S3
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: s3Key
+    };
+
     try {
-        fileType = await import('file-type');
-    } catch (error) {
-        console.error('Failed to load file-type module:', error);
-        return res.status(500).json({ error: "Server error" });
+        // Delete the object from S3
+        await s3.send(new DeleteObjectCommand(params));
+        console.log(`Document ${s3Key} deleted from S3 successfully.`);
+    } catch (s3Error) {
+        console.error(`Error deleting document ${s3Key} from S3:`, s3Error);
+        // Handle S3 deletion error as needed
+        throw new Error(`Error deleting document from S3: ${s3Error.message}`);
     }
 
-    // Detect file type and extension using the dynamically imported fileType
-    let extension;
-    const type = await fileType.fileTypeFromBuffer(fileBuffer);
-    if (type) {
-        extension = type.ext;
-    } else {
-        return res.status(400).json({ error: "Failed to detect file type" });
-    }
+    // Delete all chunks associated with the documentId
+    const deletedChunks = await Chunk.deleteMany({ documentId: objectId });
 
-    const newDocument = new Document({
-        name: originalName,
-        fulltext: "", // Will be updated after processing
-        extension
-    });
-
-    const savedDocument = await newDocument.save();
-    return savedDocument;
-}
-
-async function processDocument(documentId, buffer, extension) {
-    let fulltext = '';
-    switch (extension) {
-        case "pdf":
-            fulltext = await convertPDFBufferToText(buffer);
-            break;
-        case "xlsx":
-            fulltext = await convertExcelBufferToText(buffer);
-            break;
-        default:
-            console.log("Unsupported file format");
-            return;
-    }
-    await Document.findByIdAndUpdate(documentId, { fulltext })
-    // create chunks from the fulltext, 
-    // embed every chunks in an embeddedChunks object,
-    // save the chunks,  embeddedChunks, chunkNumber (first chunk of the document is 0, second chunk is 1 etc.), and documentId to the chunks database  
-    ;
+    // Return details about the deletion
+    return {
+        deletedDocument,
+        deletedChunksCount: deletedChunks.deletedCount
+    };
 }
 
 export {
-    createDocument,
-    processDocument
+    deleteDocument
   };
