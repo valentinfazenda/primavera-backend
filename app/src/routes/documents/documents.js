@@ -4,9 +4,9 @@ import axios from 'axios'; // Import axios to make HTTP requests
 const router = express.Router();
 import multer from 'multer';
 import { authenticateToken } from '../../middlewares/auth.js';
-import { createDocument, processDocument } from '../../services/documents/documentsService.js';
 import Document from '../../models/Document/Document.js';
 import Chunk from '../../models/Chunk/Chunk.js';
+import { deleteDocument } from '../../services/documents/documentsService.js';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import s3 from '../../config/aws.js';
@@ -30,36 +30,28 @@ router.post('/details', authenticateToken, async (req, res) => {
     }
 });
 
-// Delete a document by its ID
-router.delete('/delete', authenticateToken, async (req, res) => {
-    const documentId = req.body.id; // Get the document ID from the request body
+router.delete('/delete/:id', authenticateToken, async (req, res) => {
+    const documentId = req.params.id;
 
     try {
-        // Convert documentId to ObjectId format
-        const objectId = new mongoose.Types.ObjectId(documentId);
+        // Call the deleteDocument service function
+        const result = await deleteDocument(documentId);
 
-        // 1. Find and delete the document by its ObjectId
-        const deletedDocument = await Document.findByIdAndDelete(objectId);
-        
-        // If the document is not found, return a 404 response
-        if (!deletedDocument) {
-            return res.status(404).json({ error: "Document not found" });
-        }
-
-        // 2. Delete all chunks associated with the documentId
-        const deletedChunks = await Chunk.deleteMany({ documentId: objectId });
-
-        // 3. Respond with success message, including details on the deleted document and chunk count
+        // Respond with success message and details
         res.status(200).json({
             message: "Document and associated chunks deleted successfully",
-            deletedDocument: deletedDocument, // Return the deleted document
-            deletedChunks: deletedChunks.deletedCount, // Number of chunks deleted
+            deletedDocument: result.deletedDocument,
+            deletedChunks: result.deletedChunksCount,
         });
-
     } catch (error) {
-        // Catch any errors and respond with a 500 status code
         console.error('Error deleting document or chunks:', error);
-        res.status(500).json({ error: error.message });
+
+        // Handle specific errors
+        if (error.message === "Document not found" || error.message === "Workspace not found") {
+            res.status(404).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
     }
 });
 

@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { ObjectId } from 'mongodb';
-import { executeMessage } from '../../services/chat/chatService.js';
+import { deleteChat, executeMessage } from '../../services/chat/chatService.js';
 import { authenticateToken } from '../../middlewares/auth.js';
 import Chat from '../../models/Chat/Chat.js';
 import Workspace from '../../models/Workspace/Workspace.js';
@@ -55,39 +55,22 @@ router.post('/create', authenticateToken, async (req, res) => {
 });
 
 // Endpoint to delete a chat
-router.delete('/delete', authenticateToken, async (req, res) => {
-    const chatId = req.body.id; 
+router.delete('/delete/:id', authenticateToken, async (req, res) => {
+    const chatId = req.params.id;
 
     try {
-        // 1. Verify that the chat exists
-        const objectId = new mongoose.Types.ObjectId(chatId);
-        const chat = await Chat.findById(objectId);
-        if (!chat) {
-            return res.status(404).json({ error: "Chat not found" });
-        }
-
-        // 2. Retrieve the workspaceId from the chat and check if the user owns the workspace
-        const workspace = await Workspace.findById(chat.workspaceId);
-        if (!workspace || workspace.userId.toString() !== req.user.id) {
-            return res.status(403).json({ error: "Unauthorized access to this workspace" });
-        }
-
-        // 3. Delete the chat
-        await Chat.findByIdAndDelete(objectId);
-
-        // 4. Delete all messages associated with the chatId
-        const deletedMessages = await Message.deleteMany({ chatId: objectId });
-
-        // 5. Respond with success message and the number of deleted messages
-        res.status(200).json({
-            message: "Chat and associated messages deleted successfully",
-            deletedMessagesCount: deletedMessages.deletedCount, // Number of messages deleted
-        });
-
+        const result = await deleteChat(chatId, req.user.id);
+        res.status(200).json(result);
     } catch (error) {
-        // Catch any errors during the process
         console.error('Error deleting chat or messages:', error);
-        res.status(500).json({ error: error.message });
+        // Handle specific errors
+        if (error.message === "Chat not found") {
+            res.status(404).json({ error: error.message });
+        } else if (error.message === "Unauthorized access to this workspace") {
+            res.status(403).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
     }
 });
 
