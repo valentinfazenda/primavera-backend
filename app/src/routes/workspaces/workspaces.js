@@ -59,22 +59,32 @@ router.post('/details', authenticateToken, async (req, res) => {
 });
 
 
-router.delete('/delete', authenticateToken, async (req, res) => {
-    const { id } = req.body;
+router.delete('/delete/:id', authenticateToken, async (req, res) => {
+    const id = req.params.id;
 
     try {
         const workspace = await Workspace.findById(id);
-
+        
+        // Ensure the workspace exists
         if (!workspace) {
             return res.status(404).json({ error: "Workspace not found" });
         }
 
+        // Ensure the user is authorized to delete this workspace
         if (workspace.userId.toString() !== req.user.id) {
             return res.status(403).json({ error: "Unauthorized access" });
         }
 
-        await Workspace.findByIdAndDelete(id);
-        res.status(200).json({ message: "Workspace deleted successfully" });
+        // Call the service to delete the workspace and all its associated data
+        const result = await deleteWorkspaceById(id);
+
+        // Return success with details of deleted entities
+        res.status(200).json({
+            message: "Workspace, documents, and chats deleted successfully",
+            deletedWorkspace: result.deletedWorkspace,
+            deletedDocumentsCount: result.deletedDocumentsCount,
+            deletedChatsCount: result.deletedChatsCount
+        });
     } catch (error) {
         console.error('Error deleting workspace:', error);
         res.status(500).json({ error: error.message });

@@ -59,7 +59,7 @@ router.delete('/delete/:id', authenticateToken, async (req, res) => {
     const chatId = req.params.id;
 
     try {
-        const result = await deleteChat(chatId, req.user.id);
+        const result = await deleteChat(chatId);
         res.status(200).json(result);
     } catch (error) {
         console.error('Error deleting chat or messages:', error);

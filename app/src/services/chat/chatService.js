@@ -12,7 +12,7 @@ import mongoose from 'mongoose';
 import Chunk from '../../models/Chunk/Chunk.js';
 
 
-async function deleteChat(chatId, userId) {
+async function deleteChat(chatId) {
     try {
         // 1. Verify that the chat exists
         const objectId = new mongoose.Types.ObjectId(chatId);
@@ -21,13 +21,7 @@ async function deleteChat(chatId, userId) {
             throw new Error("Chat not found");
         }
 
-        // 2. Check if the user owns the workspace associated with the chat
-        const workspace = await Workspace.findById(chat.workspaceId);
-        if (!workspace || workspace.userId.toString() !== userId) {
-            throw new Error("Unauthorized access to this workspace");
-        }
-
-        // 3. Delete the chat
+        // 2. Delete the chat
         await Chat.findByIdAndDelete(objectId);
 
         // 4. Delete all messages associated with the chat
