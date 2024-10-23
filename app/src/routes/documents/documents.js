@@ -162,7 +162,7 @@ router.post('/synchronize', authenticateToken, async (req, res) => {
                 // If the object exists, add it to the validDocuments array
                 validDocuments.push(doc);
             } catch (error) {
-                console.error(`Document ${doc.name} not found on S3:`, error);
+                console.error(`Document ${doc.name} not found on S3`);
                 // Skip the document if it's not found on S3
             }
         }
