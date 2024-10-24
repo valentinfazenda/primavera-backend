@@ -95,6 +95,7 @@ async function executeMessage(message, chatId, userId, socket) {
 
         if (needFollowUp === 'true') {
             // Générer et retourner la question de suivi
+            socket.emit('message', { response: "Answering...", status: 'loading', type: 'progress' });
             const followUpQuestionPath = path.resolve('app/src/prompts/followUpQuestion/true/followUpQuestionTrue.txt');
             const followUpQuestionPrompt = await loadPrompt(followUpQuestionPath, context);
             const followUpQuestion = await sendMessageToAzureOpenAI(followUpQuestionPrompt, model, socket);
@@ -109,6 +110,7 @@ async function executeMessage(message, chatId, userId, socket) {
             return followUpQuestion;
 
         } else {
+            socket.emit('message', { response: "Determining use-case...", status: 'loading', type: 'progress' });
             // Déterminer la stratégie à utiliser
             const searchPromptPath = path.resolve('app/src/prompts/Search/search.txt');
             const searchPrompt = await loadPrompt(searchPromptPath, context);
@@ -117,9 +119,11 @@ async function executeMessage(message, chatId, userId, socket) {
             switch (strategy) {
                 case "1": {
                     // Répondre en utilisant l'historique du chat
-                    console.log('case 1');
+                    socket.emit('message', { response: 'Determining use-case: ChatHistory', status: 'loading', type: 'progress' });
                     const answerChatHistoryPath = path.resolve('app/src/prompts/Search/chatHistory/answerChatHistory.txt');
+                    console.log(answerChatHistoryPath);
                     const answerChatHistoryPrompt = await loadPrompt(answerChatHistoryPath, context);
+
                     const answerChatHistory = await sendMessageToAzureOpenAI(answerChatHistoryPrompt, model, socket);
 
                     const agentMessage = new Message({
@@ -132,11 +136,14 @@ async function executeMessage(message, chatId, userId, socket) {
                     return answerChatHistory;
                 }
                 case "2": {
-                    console.log('case 2: search information');
-                    // Rechercher des informations et générer une réponse
+                    socket.emit('message', { response: 'Determining use-case: Search Information', status: 'loading', type: 'progress' });
                     const searchInfoPath = path.resolve('app/src/prompts/Search/information/searchInformation.txt');
                     const searchInfoPrompt = await loadPrompt(searchInfoPath, context);
-                    const queriesResponse = await sendMessageToAzureOpenAI(searchInfoPrompt, model);
+                    const queriesResponse = (await sendMessageToAzureOpenAI(searchInfoPrompt, model))            
+                    .replaceAll('```', '')
+                    .replace('json', '')
+                    .replaceAll('\n', '')
+                    .replaceAll(/\\/g, '');
 
                     let queries;
                     try {
@@ -170,6 +177,7 @@ async function executeMessage(message, chatId, userId, socket) {
                 }
                 case "3": {
                     // Implémentation pour le cas "3"
+                    socket.emit('message', { response: 'Determining use-case: Search Document', status: 'loading', type: 'progress' });
                     console.log('case 3: search document');
                     const searchSummaryPath = path.resolve('app/src/prompts/Search/document/searchDocument.txt');
                     const searchSummaryPrompt = await loadPrompt(searchSummaryPath, context);
