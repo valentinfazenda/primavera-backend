@@ -1,5 +1,4 @@
 import Document from "../../../models/Document/Document.js";
-import { messageGenerationService } from "../../generationService/messageService/messageService.js";
 import { sendMessageToAzureOpenAI } from "../../llms/azureOpenAIService/azureOpenAIService.js";
 import { saveMessage } from "../../message/messageService.js";
 import { loadPrompt } from "../../prompts/promptsService.js";
@@ -26,7 +25,7 @@ async function handleSearchChunks(chat, context, model, socket) {
 
     socket.emit('message', { response: 'Determining use-case: SearchChunks', status: 'loading', type: 'progress' });
     
-    const SearchChunksPath = '/Search/information/searchInformation';
+    const SearchChunksPath = '/Search/chunks/searchChunks';
 
     const SearchChunksPrompt = await loadPrompt(SearchChunksPath, context);
     const SearchChunksQueries = (await sendMessageToAzureOpenAI(SearchChunksPrompt, model))            
@@ -53,9 +52,10 @@ async function handleSearchChunks(chat, context, model, socket) {
         ...context,
         chunks: JSON.stringify(chunks),
     };
-
-    const SearchChunksAnswer = await messageGenerationService(context, modelId, chatId, socket);
-
+    
+    const AnswerChunksPath = '/Search/chunks/generateAnswerMessage';
+    const AnswerChunksPrompt = await loadPrompt(AnswerChunksPath, context);
+    const SearchChunksAnswer = await sendMessageToAzureOpenAI(AnswerChunksPrompt, model, socket);
 
     await saveMessage(chatId, SearchChunksAnswer, 'agent');
 
