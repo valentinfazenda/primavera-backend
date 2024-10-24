@@ -52,15 +52,7 @@ async function sendMessageToAzureOpenAI(messages, model, socket) {
         socket.emit('message', { response: { step: 'Answer', text: 'Done' }, status: 'loading', type: 'progress' });
         socket.emit('message', { response: { text: response }, status: 'done', type: 'messsage' });
     }
-
-    // // Process and handle the response
-    // completions.choices.forEach(choice => {
-    //     const content = choice.message.content;
-    //     response += content;
-    //     if (socket && content) {
-    //         socket.emit('message', { response, status: 'loading' });
-    //     }
-    // });
+    
     return response;
 }
 
