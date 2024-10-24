@@ -39,20 +39,22 @@ async function sendMessageToAzureOpenAI(messages, model, socket) {
         stream: true
     });
     // response = completions.choices[0].message.content
-
+    if (socket)
+    {
+        socket.emit('message', { response: { step: 'Answer', text: 'Generating...' }, status: 'loading', type: 'progress' });
+    }
     for await (const event of events) {
         const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
         response += content;
         if (socket && content) {
-            socket.emit('message', { response: { step: 'Answer', text: 'Generating...' }, status: 'loading', type: 'progress' });
-            socket.emit('message', { response: { text: response }, status: 'loading', type: 'messsage' });
+            socket.emit('message', { response: { text: response }, status: 'loading', type: 'message' });
         }
     }
     if (socket && response) {
         socket.emit('message', { response: { step: 'Answer', text: 'Done' }, status: 'loading', type: 'progress' });
-        socket.emit('message', { response: { text: response }, status: 'done', type: 'messsage' });
+        socket.emit('message', { response: { text: response }, status: 'done', type: 'message' });
     }
-    
+
     return response;
 }
 
