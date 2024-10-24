@@ -10,6 +10,7 @@ import { searchService } from '../search/searchService.js';
 import Document from '../../models/Document/Document.js';
 import mongoose from 'mongoose';
 import Chunk from '../../models/Chunk/Chunk.js';
+import { loadPrompt } from '../prompts/promptsService.js';
 
 
 async function deleteChat(chatId) {
@@ -37,13 +38,6 @@ async function deleteChat(chatId) {
         // Propagate the error to be handled in the endpoint
         throw error;
     }
-}
-
-async function loadPrompt(filePath, context) {
-    const template = await fs.readFile(filePath, 'utf8');
-    return template
-        .replace(/{{\$chatHistory}}/g, context.chatHistory)
-        .replace(/{{\$query}}/g, context.query);
 }
 
 function formatChatHistory(chatHistory) {
@@ -89,14 +83,14 @@ async function executeMessage(message, chatId, userId, socket) {
         const model = await Model.findById(modelId).orFail(new Error("Modèle introuvable"));
 
         // Étape 1 : Vérifier si une question de suivi est nécessaire
-        const followUpPromptPath = path.resolve('app/src/prompts/followUpQuestion/followUpQuestion.txt');
-        const followUpPrompt = (await loadPrompt(followUpPromptPath, context)).replace(/{{\$documents}}/g, context.documents);
+        const followUpPromptPath = '/followUpQuestion/followUpQuestion';
+        const followUpPrompt = await loadPrompt(followUpPromptPath, context);
         const needFollowUp = await sendMessageToAzureOpenAI(followUpPrompt, model);
 
         if (needFollowUp === 'true') {
             // Générer et retourner la question de suivi
             socket.emit('message', { response: "Answering...", status: 'loading', type: 'progress' });
-            const followUpQuestionPath = path.resolve('app/src/prompts/followUpQuestion/true/followUpQuestionTrue.txt');
+            const followUpQuestionPath = '/followUpQuestion/true/followUpQuestionTrue';
             const followUpQuestionPrompt = await loadPrompt(followUpQuestionPath, context);
             const followUpQuestion = await sendMessageToAzureOpenAI(followUpQuestionPrompt, model, socket);
 
@@ -112,7 +106,7 @@ async function executeMessage(message, chatId, userId, socket) {
         } else {
             socket.emit('message', { response: "Determining use-case...", status: 'loading', type: 'progress' });
             // Déterminer la stratégie à utiliser
-            const searchPromptPath = path.resolve('app/src/prompts/Search/search.txt');
+            const searchPromptPath = '/Search/searchPrompt';
             const searchPrompt = await loadPrompt(searchPromptPath, context);
             const strategy = await sendMessageToAzureOpenAI(searchPrompt, model);
 
@@ -120,7 +114,7 @@ async function executeMessage(message, chatId, userId, socket) {
                 case "1": {
                     // Répondre en utilisant l'historique du chat
                     socket.emit('message', { response: 'Determining use-case: ChatHistory', status: 'loading', type: 'progress' });
-                    const answerChatHistoryPath = path.resolve('app/src/prompts/Search/chatHistory/answerChatHistory.txt');
+                    const answerChatHistoryPath = '/Search/chatHistory/answerChatHistory';
                     console.log(answerChatHistoryPath);
                     const answerChatHistoryPrompt = await loadPrompt(answerChatHistoryPath, context);
 
@@ -137,7 +131,7 @@ async function executeMessage(message, chatId, userId, socket) {
                 }
                 case "2": {
                     socket.emit('message', { response: 'Determining use-case: Search Information', status: 'loading', type: 'progress' });
-                    const searchInfoPath = path.resolve('app/src/prompts/Search/information/searchInformation.txt');
+                    const searchInfoPath = '/Search/information/searchInformation';
                     const searchInfoPrompt = await loadPrompt(searchInfoPath, context);
                     const queriesResponse = (await sendMessageToAzureOpenAI(searchInfoPrompt, model))            
                     .replaceAll('```', '')
@@ -179,7 +173,7 @@ async function executeMessage(message, chatId, userId, socket) {
                     // Implémentation pour le cas "3"
                     socket.emit('message', { response: 'Determining use-case: Search Document', status: 'loading', type: 'progress' });
                     console.log('case 3: search document');
-                    const searchSummaryPath = path.resolve('app/src/prompts/Search/document/searchDocument.txt');
+                    const searchSummaryPath = '/Search/document/searchDocument';
                     const searchSummaryPrompt = await loadPrompt(searchSummaryPath, context);
                     const queriesResponse = (await sendMessageToAzureOpenAI(searchSummaryPrompt, model))            
                         .replaceAll('```', '')
@@ -231,7 +225,7 @@ async function executeMessage(message, chatId, userId, socket) {
 
                                         
                     // Rechercher des informations et générer une réponse
-                    const answerMeetingSummaryPath = path.resolve('app/src/prompts/Search/document/summary/meeting/meetingAnswer.txt');
+                    const answerMeetingSummaryPath = '/Search/document/summary/meeting/meetingAnswer';
                     const answerMeetingSummaryPrompt = (await loadPrompt(answerMeetingSummaryPath, context)).replace(/{{\$document}}/g, context.documents);;
                     console.log('answerMeetingSummaryPrompt', answerMeetingSummaryPrompt);
                     const response = await sendMessageToAzureOpenAI(answerMeetingSummaryPrompt, model, socket);
