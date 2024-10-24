@@ -72,10 +72,24 @@ async function searchService(phrase, workspaceId) {
         }, { text: 1, documentId: 1 }); // Retrieve chunk text and documentId
         logTime('Matched chunks retrieved');
 
-        // Return an array of objects containing chunk text and documentId
+        // Step 5: Enrich the matchedChunks with the document name
+        // Extract unique document IDs from matched chunks
+        const matchedDocumentIds = [...new Set(matchedChunks.map(chunk => chunk.documentId))];
+
+        // Fetch the document names for these documentIds
+        const matchedDocuments = await Document.find({ _id: { $in: matchedDocumentIds } }, { _id: 1, name: 1 });
+
+        // Create a map of documentId to document name for quick lookup
+        const documentNameMap = matchedDocuments.reduce((map, doc) => {
+            map[doc._id] = doc.name;
+            return map;
+        }, {});
+
+        // Enrich matchedChunks with the document name
         const result = matchedChunks.map(chunk => ({
             chunkText: chunk.text,
-            documentId: chunk.documentId
+            documentId: chunk.documentId,
+            documentName: documentNameMap[chunk.documentId] || 'Unknown Document' // Handle case if name is missing
         }));
 
         return result;
