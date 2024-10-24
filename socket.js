@@ -10,7 +10,7 @@ function handleConnection(socket) {
                 console.log(messageContent);
                 socket.emit('message', '{"status": "success"}');
             } else {
-                socket.emit('message', { status: 'error', message: "missing flowId" });
+                socket.emit('message', { status: 'error', message: "missing chatId or message" });
             }
         } catch (err) {
             console.log(err.message);

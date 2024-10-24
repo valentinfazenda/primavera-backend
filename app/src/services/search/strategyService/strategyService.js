@@ -6,7 +6,7 @@ import { searchService } from "../searchService.js";
 
 async function handleChatHistory(chat, context, model, socket) {
     const chatId = chat._id;
-    socket.emit('message', { response: 'Determining use-case: ChatHistory', status: 'loading', type: 'progress' });
+    socket.emit('message', { response: { step: 'Determining usecase', text: 'Recherche dans la réponse dans l\'historique de chat' }, status: 'done', type: 'progress' });
     
     const answerChatHistoryPath = '/Search/chatHistory/answerChatHistory';
     console.log(answerChatHistoryPath);
@@ -23,7 +23,7 @@ async function handleSearchChunks(chat, context, model, socket) {
     const chatId = chat._id;
     const modelId = chat.modelId;
 
-    socket.emit('message', { response: 'Determining use-case: SearchChunks', status: 'loading', type: 'progress' });
+    socket.emit('message', { response: { step: 'Determining usecase', text: 'Recherche dans la réponse dans les passages des documents' }, status: 'done', type: 'progress' });
     
     const SearchChunksPath = '/Search/chunks/searchChunks';
 
@@ -64,7 +64,7 @@ async function handleSearchChunks(chat, context, model, socket) {
 
 async function handleSearchDocuments(chat, context, model, socket) {
     const chatId = chat._id;
-    socket.emit('message', { response: 'Determining use-case: SearchDocuments', status: 'loading', type: 'progress' });
+    socket.emit('message', { response: { step: 'Determining usecase', text: 'Recherche de documents entiers' }, status: 'done', type: 'progress' });
     
     const SearchDocumentsPath = '/Search/document/searchDocument';
 

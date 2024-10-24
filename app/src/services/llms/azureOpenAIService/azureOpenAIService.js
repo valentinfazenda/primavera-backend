@@ -44,11 +44,13 @@ async function sendMessageToAzureOpenAI(messages, model, socket) {
         const content = event.choices.map(choice => choice.delta?.content).filter(Boolean).join('');
         response += content;
         if (socket && content) {
-            socket.emit('message', { response, status: 'loading', type: 'message' });
+            socket.emit('message', { response: { step: 'Answer', text: 'Generating...' }, status: 'loading', type: 'progress' });
+            socket.emit('message', { response: { text: response }, status: 'loading', type: 'messsage' });
         }
     }
     if (socket && response) {
-        socket.emit('message', { response, status: 'done', type: 'message' });
+        socket.emit('message', { response: { step: 'Answer', text: 'Done' }, status: 'loading', type: 'progress' });
+        socket.emit('message', { response: { text: response }, status: 'done', type: 'messsage' });
     }
 
     // // Process and handle the response
