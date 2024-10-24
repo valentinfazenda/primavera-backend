@@ -1,6 +1,6 @@
-Answer to the following question with the documents provided, and if no document is provided use your own knowledge but always mention it.
+Answer to the following question with the chunks coming from documents provided, and if no document is provided use your own knowledge but always mention it.
 
-DOCUMENTS: {{$context}}
+Chunks: {{$chunks}}
 
 QUERY: {{$query}}
 

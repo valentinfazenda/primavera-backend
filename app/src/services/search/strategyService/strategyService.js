@@ -66,7 +66,7 @@ async function handleSearchDocuments(chat, context, model, socket) {
     const chatId = chat._id;
     socket.emit('message', { response: { step: 'Determining usecase', text: 'Recherche de documents entiers' }, status: 'done', type: 'progress' });
     
-    const SearchDocumentsPath = '/Search/document/searchDocument';
+    const SearchDocumentsPath = '/Search/documents/searchDocuments';
 
     const SearchDocumentsPrompt = await loadPrompt(SearchDocumentsPath, context);
     const SearchDocumentsQueries = (await sendMessageToAzureOpenAI(SearchDocumentsPrompt, model))            
@@ -118,14 +118,14 @@ async function handleSearchDocuments(chat, context, model, socket) {
 
                         
     // Rechercher des informations et générer une réponse
-    const answerMeetingSummaryPath = '/Search/document/summary/meeting/meetingAnswer';
+    const answerMeetingSummaryPath = '/Search/documents/summary/meeting/meetingAnswer';
     const answerMeetingSummaryPrompt = (await loadPrompt(answerMeetingSummaryPath, context));
     console.log('answerMeetingSummaryPrompt', answerMeetingSummaryPrompt);
     const response = await sendMessageToAzureOpenAI(answerMeetingSummaryPrompt, model, socket);
 
     await saveMessage(chatId, response, 'agent');
 
-    return SearchDocumentsAnswer;
+    return response;
 }
 
 export { handleChatHistory, handleSearchChunks, handleSearchDocuments };
