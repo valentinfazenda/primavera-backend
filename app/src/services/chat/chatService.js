@@ -78,17 +78,18 @@ async function executeMessage(message, chatId, userId, socket) {
         const needFollowUp = await sendMessageToAzureOpenAI(followUpPrompt, model);
 
         if (needFollowUp === 'true') {
-            socket.emit('message', { response: "Answering...", status: 'loading', type: 'progress' });
+            socket.emit('message', { response: { step: 'Answer', text: 'Generating...' }, status: 'loading', type: 'progress' });
             const followUpQuestionPath = '/followUpQuestion/true/followUpQuestionTrue';
             const followUpQuestionPrompt = await loadPrompt(followUpQuestionPath, context);
             const followUpQuestion = await sendMessageToAzureOpenAI(followUpQuestionPrompt, model, socket);
+            socket.emit('message', { response: { step: 'Answer', text: 'Done' }, status: 'done', type: 'progress' });
 
             await saveMessage(chatId, message, 'agent');
 
             return followUpQuestion;
 
         } else {
-            socket.emit('message', { response: "Determining use-case...", status: 'loading', type: 'progress' });
+            socket.emit('message', { response: { step: 'Determining usecase', text: 'Loading' }, status: 'loading', type: 'progress' });
             const searchPromptPath = '/Search/searchPrompt';
             const searchPrompt = await loadPrompt(searchPromptPath, context);
             const strategy = await sendMessageToAzureOpenAI(searchPrompt, model);
