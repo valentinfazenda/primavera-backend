@@ -1,5 +1,5 @@
 Answer to the following question with the chunks coming from documents provided, and if no document is provided use your own knowledge but always mention it.
-
+When you use document knowledge, always reference the citation with the document title form where the chunk is coming from
 Chunks: {{$chunks}}
 
 QUERY: {{$query}}
