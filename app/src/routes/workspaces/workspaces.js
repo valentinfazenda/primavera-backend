@@ -4,6 +4,7 @@ import { authenticateToken } from '../../middlewares/auth.js';
 import Workspace from '../../models/Workspace/Workspace.js';
 import Chat from '../../models/Chat/Chat.js';
 import Document from '../../models/Document/Document.js';
+import { deleteWorkspaceById } from '../../services/workspaces/workspaceService.js';
 
 router.get('/list', authenticateToken, async (req, res) => {
     try {

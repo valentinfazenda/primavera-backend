@@ -1,8 +1,7 @@
-// services/workspace/workspaceService.js
 import Workspace from '../../models/Workspace/Workspace.js';
 import Document from '../../models/Document/Document.js';
 import Chat from '../../models/Chat/Chat.js';
-import { deleteDocument } from './documentsService.js'; // Assuming your document service is located here
+import { deleteDocument } from '../documents/documentsService.js'; // Assuming your document service is located here
 import mongoose from 'mongoose';
 import { deleteChat } from '../chat/chatService.js';
 
