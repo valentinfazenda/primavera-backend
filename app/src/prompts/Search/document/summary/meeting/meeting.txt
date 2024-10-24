@@ -8,8 +8,8 @@ Voici le contexte de la discussion que tu as actuellement avec lui:
 
 Son dernier message, auquel tu devra répondre dans les étapes suivantes est donc {{$query}}.
 
-Le document dont-il parle est le suivant : 
- {{$document}}
+Le document ou les documents dont-il parle est/sont le(s) suivant(s) : 
+ {{$documents}}
 
 Dans les prochaines étapes tu pourras acceder aux indéxés dans le workspace pour lui répondre. 
 L'utilisateur cherche-t-il à résumer un document ?
