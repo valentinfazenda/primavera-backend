@@ -11,6 +11,6 @@ Son dernier message, auquel tu devra répondre dans les étapes suivantes est do
 Le document ou les documents dont-il parle est/sont le(s) suivant(s) : 
  {{$documents}}
 
-Dans les prochaines étapes tu pourras acceder aux indéxés dans le workspace pour lui répondre. 
-L'utilisateur cherche-t-il à résumer un document ?
-Ta réponse sera transformée en boolean donc répond juste "true" si c'est le cas "false" si ce n'est pas le cas.
+
+
+Ta tache est de faire un résumé de ce document:
