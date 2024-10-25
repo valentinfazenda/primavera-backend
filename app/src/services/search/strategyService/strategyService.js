@@ -115,13 +115,22 @@ async function handleSearchDocuments(chat, context, model, socket) {
     };
     /// case summary
 
+    /// call 
+    const SummaryPath = '/Search/documents/summary/prompt';
+    const SummaryPrompt = (await loadPrompt(SummaryPath, context));
+    const SummaryAnswer = await sendMessageToAzureOpenAI(SummaryPrompt, model);
 
-                        
-    // Rechercher des informations et générer une réponse
-    const answerMeetingSummaryPath = '/Search/documents/summary/meeting/meetingAnswer';
-    const answerMeetingSummaryPrompt = (await loadPrompt(answerMeetingSummaryPath, context));
-    console.log('answerMeetingSummaryPrompt', answerMeetingSummaryPrompt);
-    const response = await sendMessageToAzureOpenAI(answerMeetingSummaryPrompt, model, socket);
+    switch (SummaryAnswer) {
+        case "1": {
+            const answerMeetingSummaryPath = '/Search/documents/summary/meeting/prompt';
+            const answerMeetingSummaryPrompt = (await loadPrompt(answerMeetingSummaryPath, context));
+            const response = await sendMessageToAzureOpenAI(answerMeetingSummaryPrompt, model, socket);
+        }
+        default:
+            const answerSummaryPath = '/Search/documents/summary/default/prompt';
+            const answerSummaryPrompt = (await loadPrompt(answerSummaryPath, context));
+            const response = await sendMessageToAzureOpenAI(answerSummaryPrompt, model, socket);
+    }
 
     await saveMessage(chatId, response, 'agent');
 
