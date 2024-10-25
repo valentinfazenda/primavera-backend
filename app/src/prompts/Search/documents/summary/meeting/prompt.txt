@@ -16,6 +16,7 @@ Le document ou les documents dont-il parle est/sont le(s) suivant(s) :
 Ta tache est de faire un résumé de cette retranscription audio d'un meeting en suivant les consignes suivantes:
 
 Your task is to generate comprehensive meeting minutes based on the transcription provided from a video meeting.
+Generate a summary of at least 1000 tokens
 Sometimes you are also provided additionnal handwirtten notes. If so, be sure to include those points in the meeting minutes.
 
 Please use the following structure and list to ensure all relevant details are captured:
