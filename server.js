@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
   handleConnection(socket);
 });
 
-const allowedOrigins = ['http://localhost:3000', 'https://www.primavera-ai.com'];
+const allowedOrigins = ['http://localhost:3000', 'https://www.primavera-ai.com', 'https://primavera-ai.com'];
 
 app.use(cors({
   // Function to set the origin parameter dynamically based on the incoming origin
