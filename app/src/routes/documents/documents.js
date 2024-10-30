@@ -204,5 +204,27 @@ router.post('/synchronize', authenticateToken, async (req, res) => {
     }
 });
 
+router.get('/download-fulltext/:id', authenticateToken, async (req, res) => {
+    const documentId = req.params.id;
+
+    try {
+        // Find the document by ID
+        const document = await Document.findById(documentId);
+
+        if (!document || !document.fulltext) {
+            return res.status(404).json({ error: "Document or fulltext not found" });
+        }
+
+        // Set headers for file download
+        res.setHeader('Content-Disposition', 'attachment; filename=fulltext.txt');
+        res.setHeader('Content-Type', 'text/plain');
+
+        // Send the fulltext field content as the response
+        res.send(document.fulltext);
+    } catch (error) {
+        console.error('Error fetching fulltext:', error);
+        res.status(500).json({ error: 'Failed to download fulltext' });
+    }
+});
 
 export default router;
