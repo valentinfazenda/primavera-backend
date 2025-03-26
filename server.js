@@ -33,7 +33,9 @@ io.on('connection', (socket) => {
   handleConnection(socket);
 });
 
-const allowedOrigins = ['http://localhost:3000', 'https://valentinfazenda.com','https://www.valentinfazenda.com', 'https://www.primavera-ai.com', 'https://primavera-ai.com'];
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : [];
 
 app.use(cors({
   // Function to set the origin parameter dynamically based on the incoming origin
