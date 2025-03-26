@@ -2,6 +2,7 @@ import { embedChunks } from '../indexing/embedder/embederService.js';
 import axios from 'axios';
 import Document from '../../models/Document/Document.js';
 import Chunk from '../../models/Chunk/Chunk.js';
+import { PYTHON_API_URL } from '../../config/endpoints.js';
 
 // Function to log the time difference between steps
 let previousTime = Date.now();
@@ -15,7 +16,7 @@ function logTime(message) {
 // Function to calculate similarity by calling the /calculate_similarity API
 async function calculateSimilarity(phraseEmbedding, embeddedChunks) {
     try {
-        const response = await axios.post('http://localhost:4200/calculate_similarity', {
+        const response = await axios.post(`${PYTHON_API_URL}/calculate_similarity`, {
             phraseEmbedding: phraseEmbedding,
             embeddedChunks: embeddedChunks
         });

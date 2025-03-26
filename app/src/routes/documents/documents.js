@@ -11,6 +11,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import s3 from '../../config/aws.js';
 import mongoose from 'mongoose';
+import { PYTHON_API_URL } from '../../config/endpoints.js';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -185,7 +186,7 @@ router.post('/synchronize', authenticateToken, async (req, res) => {
         };
 
         // Forward the request body to the external service
-        axios.post('http://localhost:4200/processDocument', requestBody);
+        axios.post(`${PYTHON_API_URL}/processDocument`, requestBody);
 
         // Update the status of the valid documents to 'processing'
         await Document.updateMany(
