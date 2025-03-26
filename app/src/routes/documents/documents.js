@@ -172,7 +172,7 @@ router.post('/synchronize', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'No valid documents found on S3' });
         }
 
-        // Build the Records array for valid documents
+        // Build the records array for valid documents
         const records = validDocuments.map(doc => ({
             s3: {
                 bucket: { name: process.env.AWS_BUCKET_NAME },
@@ -182,7 +182,7 @@ router.post('/synchronize', authenticateToken, async (req, res) => {
 
         // Prepare the body for the processDocument API
         const requestBody = {
-            Records: records
+            records: records
         };
 
         // Forward the request body to the external service
