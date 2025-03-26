@@ -74,21 +74,22 @@ app.options('*', cors({
 const PORT = process.env.PORT || 5000;
 
 connectDB();
+app.get('/health', (req, res) => res.send('OK'));
 app.use(bodyParser.json());
 
 // Public routes
-app.use('/api/auth', authRoute);
-app.use('/api/waitingList', waitingListRoute);
+app.use('/auth', authRoute);
+app.use('/waitingList', waitingListRoute);
 
 // Protected routes
-app.use('/api/documents/', authenticateToken, documentsRoute);
-app.use('/api/llms/', authenticateToken, llmsRoute);
-app.use('/api/user/', authenticateToken, userRoute);
-app.use('/api/models/', authenticateToken, modelsRoute);
-app.use('/api/dev/', authenticateToken, devRoute);
-app.use('/api/workspace/', authenticateToken, workspaceRoute);
-app.use('/api/company/', authenticateToken, companyRoute);
-app.use('/api/chat/', authenticateToken, chatRoute);
+app.use('/documents/', authenticateToken, documentsRoute);
+app.use('/llms/', authenticateToken, llmsRoute);
+app.use('/user/', authenticateToken, userRoute);
+app.use('/models/', authenticateToken, modelsRoute);
+app.use('/dev/', authenticateToken, devRoute);
+app.use('/workspace/', authenticateToken, workspaceRoute);
+app.use('/company/', authenticateToken, companyRoute);
+app.use('/chat/', authenticateToken, chatRoute);
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

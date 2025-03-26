@@ -1,3 +1,4 @@
+import { PYTHON_API_URL } from '../../../config/endpoints.js';
 import Document from '../../../models/Document/Document.js';
 import axios from 'axios';
 
@@ -5,7 +6,7 @@ import axios from 'axios';
 async function embedChunks(chunks) {
     try {
         // Send POST request to the /embed endpoint
-        const response = await axios.post('http://localhost:4200/embed', {
+        const response = await axios.post(`${PYTHON_API_URL}/embed`, {
             sentences: chunks,
         });
 
