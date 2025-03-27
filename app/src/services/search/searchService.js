@@ -13,10 +13,10 @@ function logTime(message) {
     previousTime = currentTime; // Update the previous time
 }
 
-// Function to calculate similarity by calling the /calculate_similarity API
+// Function to calculate similarity by calling the /calculateSimilarity API
 async function calculateSimilarity(phraseEmbedding, embeddedChunks) {
     try {
-        const response = await axios.post(`${PYTHON_API_URL}/calculate_similarity`, {
+        const response = await axios.post(`${PYTHON_API_URL}/calculateSimilarity`, {
             phraseEmbedding: phraseEmbedding,
             embeddedChunks: embeddedChunks
         });
@@ -24,7 +24,7 @@ async function calculateSimilarity(phraseEmbedding, embeddedChunks) {
         // Return the best match found by the API
         return response.data.chunks;
     } catch (error) {
-        console.error('Error calling /calculate_similarity endpoint:', error.response ? error.response.data : error.message);
+        console.error('Error calling /calculateSimilarity endpoint:', error.response ? error.response.data : error.message);
         throw error;
     }
 }
