@@ -6,23 +6,22 @@ router.post('/join', async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
+        return res.status(400).json({ field: 'email', msg: 'Email is required' });
     }
 
     try {
         const existingEntry = await WaitingList.findOne({ email });
 
         if (existingEntry) {
-            return res.status(400).json({ error: 'Email is already in the waiting list' });
+            return res.status(409).json({ field: 'email', msg: 'Email already in the waiting list' });
         }
 
-        const newEntry = new WaitingList({ email });
-        await newEntry.save();
+        await new WaitingList({ email }).save();
 
-        res.status(200).json({ message: 'Email added to the waiting list successfully' });
-    } catch (error) {
-        console.error("Error adding email to the waiting list:", error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(200).json({ msg: 'Successfully joined the waiting list' });
+    } catch (err) {
+        console.error("Error adding email to the waiting list:", err);
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
