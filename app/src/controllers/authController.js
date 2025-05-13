@@ -53,15 +53,18 @@ export const register = async (req, res) => {
     }
 };
 
-
 export const login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        let user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ msg: 'Invalid Credentials' });
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ field: 'email', msg: 'Unknown Email' });
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
+        if (!isMatch) {
+            return res.status(401).json({ field: 'password', msg: 'Wrong Password' });
+        }
 
         const payload = { user: { id: user.id } };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 }, (err, token) => {
@@ -81,5 +84,28 @@ export const getUser = async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
+    }
+};
+
+export const processResetPasswordRequest = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ field: 'email', msg: 'Email is required' });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ field: 'email', msg: 'No account found with this email' });
+        }
+
+        // TO BE IMPLEMENTED: Send email with reset password link
+
+        return res.status(200).json({ msg: 'If an account exists, you will receive reset instructions.' });
+    } catch (err) {
+        console.error('Error processing reset password request:', err);
+        res.status(500).json({ msg: 'Server error' });
     }
 };
