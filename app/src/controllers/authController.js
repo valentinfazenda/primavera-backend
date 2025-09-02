@@ -66,3 +66,16 @@ export const getUser = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
+
+export async function session(req, res) {
+  try {
+    const user = await User.findById(req.user.id)
+      .select("_id email firstName lastName profilePicture status")
+      .lean();
+    if (!user) return res.status(404).json({ ok: false, error: "User not found" });
+
+    return res.status(200).json({ ok: true, user });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+}
